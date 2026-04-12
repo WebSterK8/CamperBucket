@@ -1,0 +1,291 @@
+/* variabelen voor de volledige website*/
+:root {
+    --grey: #eee; /*voordien rgba(134, 153, 153, 0.25);*/ 
+    --darkgrey: rgba(112, 121, 121, 0.6); /*responsive section counter - 'wie zijn we'*/
+    --bluegrey: rgba(134, 153, 153, 0.50); /*footer = border logo*/
+    --blue: rgb(102, 153, 153);
+    --green: rgb(153, 204, 153);
+
+	/*background-color: #1C2A3A; /* Nachtblauw*/
+	
+	--sagegreen: #7a8f7a; /* Saliegroen */
+	--alfasage: #7a8f7a3f; /* Saliegroen alfa */
+	--darksage: #606f60; /* Saliegroen donker */
+
+	--beige: #F4EFEA; /* Warm beige*/
+	--sand:  #E6DCCF; /* Zand */
+
+
+
+
+}
+
+
+.bg-sagegreen {
+    background-color: var(--sagegreen) !important ;
+}
+
+.bg-alfasage {
+	background-color: var(--alfasage) !important ; 
+}
+
+
+.text-darksage {
+	color: var(--darksage) !important; 
+}
+
+
+
+/* BOOTSTRAP COLORS */
+
+
+/*.bg-primary { blauw }*/
+
+/*.bg-secondary { grijs }*/
+
+/*.bg-light { witachtig }*/
+
+/*.bg-dark { donkergrijs }*/
+
+/*.bg-danger { rood }*/
+
+
+.bg-success { /* groen */
+	background-color: #99CC99BF !important; /* Groen websterk */
+	/*background-color: #d4edda !important; /* Lichtgroen websterk*/
+}
+
+
+.bg-warning { /* geel */
+	background-color: var(--sand) !important;
+}
+
+
+.bg-info { /* blauw-turkoois */
+	background-color: var(--beige) !important; 
+}
+
+
+
+button {
+    padding: 8px;
+    background-color: var(--beige);
+    color: var(--darksage);
+    border: 0px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+
+button:hover {
+    color: var(--beige);
+    background-color: var(--sagegreen);
+}
+
+
+
+/* bootstrap outline button met custom kleuren *//* reset knop map_leaf_route en knoppen checklist*/
+.btn-outline-dark {
+    background-color: transparent !important;
+    color: var(--darksage) !important;
+    border: 2px solid var(--darksage) !important;
+}
+
+.btn-outline-dark:hover {
+    background-color: var(--sagegreen) !important;
+    color: var(--beige) !important;
+    border: 2px solid var(--sagegreen) !important;
+}
+
+.btn-outline-dark.active {
+    background-color: var(--sagegreen) !important;
+    color: var(--beige) !important;
+    border: 2px solid var(--sagegreen) !important;
+}
+
+.custom-tooltip {
+  --bs-tooltip-bg: var(--beige);
+  --bs-tooltip-color: var(--sagegreen);
+}
+
+
+
+
+
+/* formulier input */
+.form-control:focus {
+    border-color: var(--sagegreen) !important;
+    box-shadow: 0 0 0 0.25rem rgba(122, 143, 122, 0.25) !important;
+}
+
+
+
+/* checkboxes */
+
+.form-check-input {
+    accent-color: var(--green);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.form-check-input:checked {
+    background-color: var(--green) !important;
+    border-color: var(--green) !important;
+}
+
+.form-check-input:hover {
+    box-shadow: 0 0 8px rgba(153, 204, 153, 0.5);
+}
+
+
+
+
+
+
+
+
+.ratio iframe {
+    border-radius: 5px;   
+}
+
+
+
+.video-container {
+    overflow: hidden;
+
+    border-radius: 5px;
+    background-color: var(--beige);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+
+.video-container:hover {
+    background-color: var(--sagegreen);       
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+
+
+
+/* Carousel: vaste slidehoogte en cover-images voor consistente slides */
+.carousel-inner {
+    height: 60vh;
+    max-height: 700px;
+}
+
+.carousel-item,
+.carousel-item img {
+    height: 100%;
+}
+
+.carousel-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.carousel-caption {
+    background: rgba(0,0,0,0.35);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+}
+
+/* Helper: use contain for tall/portrait images so whole image fits */
+.carousel-item img.contain {
+    object-fit: contain;
+    object-position: center;
+    width: auto;
+    max-width: 100%;
+    height: 100%;
+    display: block;
+    margin: 0 auto;
+    background-color: var(--beige);
+}
+
+
+.carousel-indicators {
+    background-color: transparent !important;
+}
+
+
+
+/* Layout grafiek en kaart  */
+
+.charts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.charts .card {
+    flex: 1 1 500px; /* grow, shrink, base width */
+    min-width: 280px;
+}
+
+
+
+/* info bij kaart */
+#info { 
+    padding: 8px; 
+}
+
+
+/* kaart */
+#map { 
+    width: 100%; 
+    height: 650px; 
+    min-height: 320px; 
+    margin-top: 6px;
+}
+
+
+/* extra css search button kaart */
+button#searchBtn {
+    display: inline-block;
+    width: auto !important;
+    max-width: none !important;
+   
+    /* fit-content als fallback */
+    max-width: fit-content !important;
+    padding: 12px;
+
+}
+
+
+/* grafiek */
+#tempChart {
+    box-sizing: border-box; /* voorkom overflow */      
+    display: block;   
+
+
+    width: 100%;
+    height: 650px;  
+
+    min-height: 320px;
+    max-height: 700px;
+
+    max-width: 100%;
+}
+
+
+
+@media (max-width: 1160px) {
+    .charts {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+
+@media (min-width: 992px) {
+    #map { height: 650px; } 
+}
+
+  
+@media (max-width: 576px) { 
+    #map { height: 50vh; } 
+}
+ 
+
