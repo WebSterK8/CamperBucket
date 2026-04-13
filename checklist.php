@@ -84,7 +84,7 @@ $camperStuff = [
 <div class="container-lg mt-2">
 
  <!-- bootstrap formulier met bootstrap componenten: card - listgroup - checkboxes - input group - addons - buttons-->
- <form id="new_list">
+ <form id="create_list">
 
 
     <div class="row g-4 mt-1">
@@ -175,7 +175,7 @@ $camperStuff = [
  </form>
 
 
- <form id="update_list">
+ <form id="update_list" style="display:none;">
 
     <div class="row g-4 mt-1">
 
@@ -293,6 +293,68 @@ $camperStuff = [
 
 </div>
 
+<!-- code client side -->
+
+
+<script>
+
+// NIEUWE LIJST MAKEN IN FORMULIER CREATE_LIST MET FETCH API
+
+document.getElementById('create_list').addEventListener('submit', async (event) => {
+    
+    event.preventDefault(); // Voorkom standaard formulierverzending
+
+    const form = event.target; // event.target bevat het HTML element dat het evenement veroorzaakt heeft ( = het formulier) 
+    const formData = new FormData(form);
+
+    // formData converteren naar JSON
+    const data = {};
+    formData.forEach((value, key) => { // formData omzetten in Javascript-object
+        data[key] = value; // bewaren in data-object
+    });
+
+    try {
+        // Fetch API-aanroep
+        const response = await fetch('API/create_checklist.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+
+            //  checklist_id ophalen
+            const checklistId = result.id;
+
+            //  hidden input toevoegen aan update form
+            let input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "checklist_id";
+            input.value = checklistId;
+
+            document.getElementById("update_list").appendChild(input);
+
+            //  formulier update_list tonen
+            document.getElementById("update_list").style.display = "block";
+
+            //  eerste form verbergen
+            document.getElementById("create_list").style.display = "none";
+
+        } else {
+            console.error("Fout bij opslaan");
+        }
+
+    } catch (error) {
+        console.error("Fout:", error);
+    }
+
+});
+
+                
+</script>
 
 <?php include 'footer.php';?>
 
