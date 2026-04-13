@@ -66,7 +66,7 @@ $camperStuff = [
     'Sloefen',
 
     'Afwasmiddel',
-    'Handdoek',
+    'Keukenhanddoek',
     'Spons',
     'Vod',
 
@@ -84,7 +84,7 @@ $camperStuff = [
 <div class="container-lg mt-2">
 
  <!-- bootstrap formulier met bootstrap componenten: card - listgroup - checkboxes - input group - addons - buttons-->
- <form action="/action_checklist.php">
+ <form id="new_list">
 
 
     <div class="row g-4 mt-1">
@@ -104,10 +104,10 @@ $camperStuff = [
                 <div class="card-body">
 
                     <label class="form-label" for="land">Land</label>
-                    <input class="form-control" type="text" id="land">
+                    <input class="form-control" type="text" id="land" name="land">
                     
                     <label class="form-label" for="regio">Regio</label>
-                    <input class="form-control" type="text" id="regio">
+                    <input class="form-control" type="text" id="regio" name="regio">
 
                 </div>
                 
@@ -135,10 +135,10 @@ $camperStuff = [
                 <div class="card-body">
 
                     <label class="form-label" for="jaar">Jaar</label>
-                    <input class="form-control" type="text" id="jaar">
+                    <input class="form-control" type="text" id="jaar" name="jaar">
                     
                     <label class="form-label" for="mnWk">Maand/week</label>
-                    <input class="form-control" type="text" id="mnWk">
+                    <input class="form-control" type="text" id="mnWk" name="mnWk">
 
                 </div>
 
@@ -151,8 +151,31 @@ $camperStuff = [
 
     </div>
 
+    
+    <div class="row mt-4">
 
-   
+       <!-- Formulier opslaan card-->
+        <div class="col-12">
+
+            <div class="card h-100 shadow-sm">
+
+                <div class="card-body">
+
+                 <button type="submit" class="btn btn-outline-dark">Opslaan</button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+    
+
+ </form>
+
+
+ <form id="update_list">
 
     <div class="row g-4 mt-1">
 
