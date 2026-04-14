@@ -26,11 +26,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    $sql = "INSERT INTO tbl_checklist (land, regio, jaar, maand_week, titel)
-            VALUES (?, ?, ?, ?, ?)";
+    $sql = "UPDATE tbl_checklist 
+        SET land=?, regio=?, jaar=?, maand_week=?
+        WHERE id=?";
 
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sssss", $land, $regio, $jaar, $maand_week, $titel);
+    $stmt->bind_param("sssss", $land, $regio, $jaar, $maand_week, $id);
     
     if ($stmt->execute()) {
 

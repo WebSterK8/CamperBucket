@@ -83,6 +83,23 @@ $camperStuff = [
 
 <div class="container-lg mt-2">
 
+ <div class="card mt-3">
+
+    <div class="card-body">
+
+        <label for="checklistSelect" class="form-label">
+            Kies bestaande checklist
+        </label>
+
+        <select id="checklistSelect" class="form-select">
+            <option value="">-- nieuwe checklist --</option>
+        </select>
+
+    </div>
+
+ </div>
+
+
  <!-- bootstrap formulier met bootstrap componenten: card - listgroup - checkboxes - input group - addons - buttons-->
  <form id="create_list">
 
@@ -195,7 +212,12 @@ $camperStuff = [
                     <?php foreach ($camperFood as $index => $item): ?>
 
                         <li class="list-group-item">
-                            <input class="form-check-input me-2" type="checkbox" id="foodCheckbox<?= $index ?>">
+                            <input class="form-check-input me-2" 
+                            type="checkbox" 
+                            name="food[]"
+                            value="<?= $item ?>"
+                            id="foodCheckbox<?= $index ?>">
+
                             <label class="form-check-label" for="foodCheckbox<?= $index ?>"><?= $item ?></label>
                         </li>
                         
@@ -210,7 +232,7 @@ $camperStuff = [
                     <!-- input group met button addon -->
                     <div class="input-group m-1">
                         <!--<label class="form-label" for="food">Extra food toevoegen aan lijst</label>-->
-                        <input class="form-control"type="text" id="food" placeholder=" Extra food toevoegen aan lijst" aria-label=" toevoegen aan lijst" aria-describedby="button-addon1">
+                        <input class="form-control" type="text" id="food" placeholder=" Extra food toevoegen aan lijst" aria-label=" toevoegen aan lijst" aria-describedby="button-addon1">
                         <button class="btn btn-outline-dark" type="button" id="button-addon1">Toevoegen</button>
                     </div>
 
@@ -237,7 +259,12 @@ $camperStuff = [
                     <?php foreach ($camperStuff as $index => $item): ?>
 
                         <li class="list-group-item">
-                            <input class="form-check-input me-2" type="checkbox" id="stuffCheckbox<?= $index ?>">
+                            <input class="form-check-input me-2" 
+                            type="checkbox" 
+                            name="stuff[]"
+                            value="<?=  $item ?>"
+                            id="stuffCheckbox<?= $index ?>">
+
                             <label class="form-check-label" for="stuffCheckbox<?= $index ?>"><?= $item ?></label>
                         </li>
 
@@ -298,8 +325,56 @@ $camperStuff = [
 
 <script>
 
-// NIEUWE LIJST MAKEN IN FORMULIER CREATE_LIST MET FETCH API
+let checklistId = null;
 
+// event
+document.getElementById('checklistSelect').addEventListener('change', function () {
+
+    const selectedId = this.value;
+
+    if (selectedId === "") {
+        checklistId = null;
+
+        document.getElementById("create_list").style.display = "block";
+        document.getElementById("update_list").style.display = "none";
+
+        return;
+    }
+
+    checklistId = selectedId;
+
+    console.log("Geselecteerde checklist:", checklistId);
+
+    document.getElementById("create_list").style.display = "none";
+    document.getElementById("update_list").style.display = "block";
+
+
+});
+
+// DROPDOWN
+async function loadChecklists() {
+    try {
+        const response = await fetch('API/get_checklists.php');
+        const data = await response.json();
+
+        const select = document.getElementById('checklistSelect');
+
+        data.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.textContent = item.titel + " (" + item.jaar + ")";
+            select.appendChild(option);
+        });
+
+    } catch (error) {
+        console.error("Fout bij laden checklists:", error);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadChecklists);
+
+
+// NIEUWE LIJST MAKEN IN FORMULIER CREATE_LIST OF BESTAANDE LIJST UPDATEN MET FETCH API
 document.getElementById('create_list').addEventListener('submit', async (event) => {
     
     event.preventDefault(); // Voorkom standaard formulierverzending
@@ -314,37 +389,49 @@ document.getElementById('create_list').addEventListener('submit', async (event) 
     });
 
     try {
+        // endpoint
+        let url = 'API/create_checklist.php';
+
+        // indien checklistID bestaat (en dus lijst gecreëerd is), update_checklist
+        if (checklistId !== null) {
+            data.id = checklistId;
+            url = 'API/update_checklist.php';
+        }
+
         // Fetch API-aanroep
-        const response = await fetch('API/create_checklist.php', {
+        const response = await fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
 
+        const result = await response.json();
+
         if (response.ok) {
-            const result = await response.json();
 
-            //  checklist_id ophalen
-            const checklistId = result.id;
+            // enkel bij create krijg je nieuwe id
+            if (checklistId === null) {
+                checklistId = result.id;
+            }
 
-            //  hidden input toevoegen aan update form
-            let input = document.createElement("input");
-            input.type = "hidden";
-            input.name = "checklist_id";
-            input.value = checklistId;
+            console.log("Checklist ID:", checklistId);
 
-            document.getElementById("update_list").appendChild(input);
+            // hidden input updaten
+            let existingInput = document.querySelector('input[name="checklist_id"]');
 
-            //  formulier update_list tonen
+            if (!existingInput) {
+                let input = document.createElement("input");
+                input.type = "hidden";
+                input.name = "checklist_id";
+                input.value = checklistId;
+                document.getElementById("update_list").appendChild(input);
+            } else {
+                existingInput.value = checklistId;
+            }
+
+            // UI
             document.getElementById("update_list").style.display = "block";
 
-            //  eerste form verbergen
-            document.getElementById("create_list").style.display = "none";
-
-        } else {
-            console.error("Fout bij opslaan");
         }
 
     } catch (error) {
