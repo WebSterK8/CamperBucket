@@ -1,6 +1,8 @@
 <?php
 require_once '../dbconnect.php';
 
+header('Content-Type: application/json');
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $input = file_get_contents('php://input');
@@ -12,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
     
-    $land  = Inputbeveiliging($data['land']);
+    $land  = Inputbeveiliging($data['land']); // ? BETER trim($data['land'] ?? '');   ?
     $regio = Inputbeveiliging($data['regio']);
     $jaar  = Inputbeveiliging($data['jaar']);
     $maand_week  = Inputbeveiliging($data['mnWk']);

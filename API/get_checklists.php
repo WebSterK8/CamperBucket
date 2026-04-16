@@ -9,6 +9,12 @@ $sql = "SELECT id, titel, land, jaar
 
 $result = $conn->query($sql);
 
+if (!$result) { // checken of query gelukt is voor het resultaat gebruikt word
+    http_response_code(500);
+    echo json_encode(['message' => 'Database fout']);
+    exit;
+}
+
 $checklists = [];
 
 while ($row = $result->fetch_assoc()) {

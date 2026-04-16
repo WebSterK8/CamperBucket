@@ -1,6 +1,8 @@
 <?php
 require_once '../dbconnect.php';
 
+header('Content-Type: application/json');
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $input = file_get_contents('php://input');
@@ -12,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
     
-    $land  = Inputbeveiliging($data['land']);
+    $land  = Inputbeveiliging($data['land']); // BETER trim???? en dus geen inputbeveiliging ? zie create_checklist 
     $regio = Inputbeveiliging($data['regio']);
     $jaar  = Inputbeveiliging($data['jaar']);
     $maand_week  = Inputbeveiliging($data['mnWk']);
@@ -31,12 +33,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         WHERE id=?";
 
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sssss", $land, $regio, $jaar, $maand_week, $id);
+    $stmt->bind_param("ssssi", $land, $regio, $jaar, $maand_week, $id);
     
     if ($stmt->execute()) {
 
-       // $id = $stmt->insert_id; //  BELANGRIJK
-        $id = $conn->insert_id; //  BELANGRIJK 
+      
+        //$id = $conn->insert_id; // geen insert bij update
 
         http_response_code(200);
         echo json_encode([
