@@ -167,22 +167,8 @@ $camperStuff = [];
 
                 <div class="card-body">
 
-                 <ul class="list-group list-group-flush" id="foodList">
-                    
-
-                        <li class="list-group-item">
-                            <input class="form-check-input me-2" 
-                            type="checkbox" 
-                            name="food[]"
-                            value="<?= $item ?>"
-                            id="foodCheckbox<?= $index ?>">
-
-                            <label class="form-check-label" for="foodCheckbox<?= $index ?>"><?= $item ?></label>
-                        </li>
-                        
-                    
-                 </ul>
-
+                 <ul class="list-group list-group-flush" id="foodList"></ul>
+                     
                 </div>
 
 
@@ -214,21 +200,7 @@ $camperStuff = [];
 
                 <div class="card-body">
 
-                 <ul class="list-group list-group-flush" id="stuffList">
-                    <?php foreach ($camperStuff as $index => $item): ?>
-
-                        <li class="list-group-item">
-                            <input class="form-check-input me-2" 
-                            type="checkbox" 
-                            name="stuff[]"
-                            value="<?=  $item ?>"
-                            id="stuffCheckbox<?= $index ?>">
-
-                            <label class="form-check-label" for="stuffCheckbox<?= $index ?>"><?= $item ?></label>
-                        </li>
-
-                    <?php endforeach; ?>
-                 </ul>
+                 <ul class="list-group list-group-flush" id="stuffList"></ul>
 
                 </div>
 
@@ -284,7 +256,11 @@ $camperStuff = [];
 
 <script>
 
+const DEBUG = true; 
+
+
 let checklistId = null;
+
 
 // EVENTLISTENER DROPDOWN MENU (UI - SWITCHER)
 document.getElementById('checklistSelect').addEventListener('change', function () {
@@ -303,17 +279,22 @@ document.getElementById('checklistSelect').addEventListener('change', function (
 
     checklistId = selectedId; // als er wel een checklist gekozen is, bewaar het ID 
 
-    console.log("Geselecteerde checklist:", checklistId); // debug info in console
+    // debug info in console
+    if (DEBUG) {
+        console.log("Geselecteerde checklist:", checklistId);
+    } 
 
     document.getElementById("create_list").style.display = "none"; // dan create_list verbergen
     document.getElementById("update_list").style.display = "block"; // update_list tonen
 
+    loadChecklistItems(checklistId);
 
 });
 
 
 document.addEventListener('DOMContentLoaded', loadChecklists); //voer functie loadChecklists uit wanneer de HTML pagina geladen is
 document.addEventListener('DOMContentLoaded', loadItems);
+
 
 // DROPDOWN <select> MENU VULLEN MET CHECKLISTS UIT DATABASE (DATA - LOADER) MET FETCH API
 async function loadChecklists() {
@@ -340,7 +321,7 @@ async function loadChecklists() {
 }
 
 
-// LOAD ITEMS
+// ITEM - LOADER
 async function loadItems() {
     try {
         const response = await fetch('API/get_items.php');
@@ -361,7 +342,7 @@ async function loadItems() {
                 <input class="form-check-input me-2"
                     type="checkbox"
                     name="${item.categorie}[]"
-                    value="${item.naam}"
+                    value="${item.id}"
                     id="${item.categorie}_${item.id}">
 
                 <label for="${item.categorie}_${item.id}">
@@ -378,6 +359,32 @@ async function loadItems() {
 
     } catch (error) {
         console.error("Fout bij laden items:", error);
+    }
+}
+
+
+// bij selectie van checklist → items ophalen uit tbl_checklist_items
+async function loadChecklistItems(id) {
+    try {
+        const response = await fetch('API/get_checklist_items.php?checklist_id=' + id);
+        const data = await response.json();
+
+        // eerst alles unchecken
+        document.querySelectorAll('#foodList input, #stuffList input')
+            .forEach(cb => cb.checked = false);
+
+        data.forEach(item => {
+
+            const checkboxId = item.categorie + '_' + item.item_id;
+            const checkbox = document.getElementById(checkboxId);
+
+            if (checkbox) {
+                checkbox.checked = item.checked == 1;
+            }
+        });
+
+    } catch (error) {
+        console.error("Fout bij laden checklist items:", error);
     }
 }
 
