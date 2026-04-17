@@ -256,10 +256,13 @@ $camperStuff = [];
 
 <script>
 
+
 const DEBUG = true; 
-
-
 let checklistId = null;
+
+
+document.addEventListener('DOMContentLoaded', initChecklistPage);//voer functie uit wanneer de HTML pagina geladen is
+
 
 
 // EVENTLISTENER DROPDOWN MENU (UI - SWITCHER)
@@ -292,11 +295,7 @@ document.getElementById('checklistSelect').addEventListener('change', function (
 });
 
 
-document.addEventListener('DOMContentLoaded', loadChecklists); //voer functie loadChecklists uit wanneer de HTML pagina geladen is
-document.addEventListener('DOMContentLoaded', loadItems);
-
-
-// DROPDOWN <select> MENU VULLEN MET CHECKLISTS UIT DATABASE (DATA - LOADER) MET FETCH API
+// DROPDOWN <select> MENU VULLEN MET CHECKLISTS uit tbl_checklist MET FETCH API
 async function loadChecklists() {
     try {
         // checklists ophalen
@@ -321,7 +320,8 @@ async function loadChecklists() {
 }
 
 
-// ITEM - LOADER
+// FASE 1:  DOM bouwen MET FETCH API
+// basic items ophalen uit tbl_items en checkboxes maken (UI bouwen voor nieuwe lijst)
 async function loadItems() {
     try {
         const response = await fetch('API/get_items.php');
@@ -363,11 +363,21 @@ async function loadItems() {
 }
 
 
-// bij selectie van checklist → items ophalen uit tbl_checklist_items
+// FASE 2: DOM MANIPULEREN
+// (bij selectie van bestaande checklist →) gegevens ophalen uit tbl_checklist_items (checkboxes uit / aan)
 async function loadChecklistItems(id) {
     try {
+        
+        if (DEBUG) {
+            console.log("Checklist items laden voor ID:", id);
+        }
+
         const response = await fetch('API/get_checklist_items.php?checklist_id=' + id);
         const data = await response.json();
+
+        if (DEBUG) {
+            console.log("Checklist items ontvangen:", data);
+        }
 
         // eerst alles unchecken
         document.querySelectorAll('#foodList input, #stuffList input')
@@ -387,6 +397,21 @@ async function loadChecklistItems(id) {
         console.error("Fout bij laden checklist items:", error);
     }
 }
+
+
+// INIT CONTROLLER FLOW
+async function initChecklistPage() {
+    await loadItems();
+    await loadChecklists();
+}
+
+
+
+
+
+
+
+
 
 
 // NIEUWE LIJST MAKEN IN FORMULIER CREATE_LIST OF BESTAANDE LIJST UPDATEN MET FETCH API
@@ -416,6 +441,11 @@ document.getElementById('create_list').addEventListener('submit', async (event) 
             url = 'API/update_checklist.php'; // gebruik update API
         }
 
+        if (DEBUG) {
+            console.log("FORM DATA:", data);
+            console.log("URL:", url);
+        }
+
         // Fetch API-aanroep stuurt JSON naar PHP API (data versturen naar backend)
         const response = await fetch(url, {
             method: 'POST',
@@ -425,6 +455,10 @@ document.getElementById('create_list').addEventListener('submit', async (event) 
         
    
         const result = await response.json();
+
+        if (DEBUG) {
+            console.log("API RESPONSE:", result);
+        }
 
         if (response.ok) {
 
@@ -458,6 +492,148 @@ document.getElementById('create_list').addEventListener('submit', async (event) 
         console.error("Fout:", error);
     }
 
+});
+
+
+// AANGEVINKTE ITEMS OPHALEN
+// Functie voor wanneer je klikt op 'Opslaan' in tweede formulier
+document.getElementById('update_list').addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    if (!checklistId) {
+        console.error("Geen checklist geselecteerd");
+        return;
+    }
+
+    // alle checkboxes ophalen
+    const checkedItems = [];
+
+    document.querySelectorAll('#foodList input, #stuffList input').forEach(cb => {
+        checkedItems.push({
+            item_id: cb.value,
+            checked: cb.checked ? 1 : 0,
+            categorie: cb.name.replace('[]', '')
+        });
+    });
+
+    const payload = {
+        checklist_id: checklistId,
+        items: checkedItems
+    };
+
+    try {
+        const response = await fetch('API/save_checklist_items.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (DEBUG) console.log("Opslaan resultaat:", result);
+
+    } catch (error) {
+        console.error("Fout bij opslaan checklist items:", error);
+    }
+});
+
+
+// FOOD ITEM TOEVOEGEN
+document.getElementById('button-addon1').addEventListener('click', async () => {
+
+    const input = document.getElementById('food');
+    const naam = input.value.trim();
+
+    if (!naam) return;
+
+    const response = await fetch('API/add_item.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            naam: naam,
+            categorie: 'food'
+        })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+
+        const foodList = document.getElementById('foodList');
+
+        const li = document.createElement('li');
+        li.className = 'list-group-item';
+
+        const id = result.id;
+        const checkboxId = 'food_' + id;
+
+        li.innerHTML = `
+            <input class="form-check-input me-2"
+                type="checkbox"
+                name="food[]"
+                value="${id}"
+                id="${checkboxId}">
+
+            <label for="${checkboxId}">
+                ${result.naam}
+            </label>
+        `;
+
+        foodList.appendChild(li);
+
+        input.value = '';
+    }
+});
+
+
+
+
+
+// STUFF TOEVOEGEN
+document.getElementById('button-addon2').addEventListener('click', async () => {
+
+    const input = document.getElementById('stuff');
+    const naam = input.value.trim();
+
+    if (!naam) return;
+
+    const response = await fetch('API/add_item.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            naam: naam,
+            categorie: 'stuff'
+        })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+
+        const stuffList = document.getElementById('stuffList');
+
+        const li = document.createElement('li');
+        li.className = 'list-group-item';
+
+        const id = result.id;
+        const checkboxId = 'stuff_' + id;
+
+        li.innerHTML = `
+            <input class="form-check-input me-2"
+                type="checkbox"
+                name="stuff[]"
+                value="${id}"
+                id="${checkboxId}">
+
+            <label for="${checkboxId}">
+                ${result.naam}
+            </label>
+        `;
+
+        stuffList.appendChild(li);
+
+        input.value = '';
+    }
 });
 
                 
