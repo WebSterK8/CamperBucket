@@ -1,4 +1,5 @@
 <?php
+require_once 'controlelogin.php';
 require_once '../dbconnect.php';
 
 header('Content-Type: application/json');
@@ -17,6 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $categorie = trim($data['categorie']);
 
     $sql = "INSERT INTO tbl_items (naam, categorie) VALUES (?, ?)";
+    
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("ss", $naam, $categorie);
 

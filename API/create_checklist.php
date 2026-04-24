@@ -1,12 +1,13 @@
 <?php
-require_once '../dbconnect.php';
+require_once 'controlelogin.php'; // login controle
+require_once '../dbconnect.php'; // veilige database connectie
 
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $input = file_get_contents('php://input');
-    $data = json_decode($input, true);
+    $data = json_decode($input, true); 
     
     if (!$data) {
         http_response_code(400);
@@ -14,25 +15,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
     
-    $land  = Inputbeveiliging($data['land']); // ? BETER trim($data['land'] ?? '');   ?
-    $regio = Inputbeveiliging($data['regio']);
-    $jaar  = Inputbeveiliging($data['jaar']);
-    $maand_week  = Inputbeveiliging($data['mnWk']);
+    $land  = trim($data['land']);
+    $regio = trim($data['regio']);
+    $jaar  = trim($data['jaar']);
+    $maand_week  = trim($data['mnWk']);
 
     $titel = $land . ' ' . $jaar;
 
-    // Validatie invoer
+    // Input validatie: verplichte velden
     if (empty($land) || empty($jaar)) {
         http_response_code(400);
         echo json_encode(['message' => 'Minstens land en jaar invullen']);
         exit;
     }
 
+    // Input validatie: controle datatype
+    if (!is_numeric($jaar)) {
+        http_response_code(400);
+        echo json_encode(['message' => 'Het jaar moet numeriek zijn.']);
+        exit;
+    }
+
+    
     $sql = "INSERT INTO tbl_checklist (land, regio, jaar, maand_week, titel)
     VALUES (?, ?, ?, ?, ?)";
 
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sssss", $land, $regio, $jaar, $maand_week, $titel);
+    $stmt = $conn->prepare($sql); // query voorbereiden met Prepared Statements, tegen SQL injectie
+    $stmt->bind_param("ssiss", $land, $regio, $jaar, $maand_week, $titel);
     
     if ($stmt->execute()) {
 
@@ -77,10 +86,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 
-function Inputbeveiliging($data) {
-    $data = trim($data);
-    $data = stripslashes($data);
-    $data = htmlspecialchars($data);
-    return $data;
-}
 ?>

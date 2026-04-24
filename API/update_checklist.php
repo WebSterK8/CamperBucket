@@ -1,4 +1,5 @@
 <?php
+require_once 'controlelogin.php';
 require_once '../dbconnect.php';
 
 header('Content-Type: application/json');
@@ -14,26 +15,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
     
-    $land  = Inputbeveiliging($data['land']); // BETER trim???? en dus geen inputbeveiliging ? zie create_checklist 
-    $regio = Inputbeveiliging($data['regio']);
-    $jaar  = Inputbeveiliging($data['jaar']);
-    $maand_week  = Inputbeveiliging($data['mnWk']);
+    $land  = trim($data['land']); 
+    $regio = trim($data['regio']);
+    $jaar  = trim($data['jaar']);
+    $maand_week  = trim($data['mnWk']);
 
     $titel = $land . ' ' . $jaar;
+    
 
-    // Validatie invoer
+    // Input validatie
     if (empty($land) || empty($jaar)) {
         http_response_code(400);
         echo json_encode(['message' => 'Minstens land en jaar invullen']);
         exit;
     }
 
+    if (!is_numeric($jaar)) {
+        http_response_code(400);
+        echo json_encode(['message' => 'Het jaar moet numeriek zijn.']);
+        exit;
+    }
+
+    
+
     $sql = "UPDATE tbl_checklist 
         SET land=?, regio=?, jaar=?, maand_week=?
         WHERE id=?";
 
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssssi", $land, $regio, $jaar, $maand_week, $id);
+    $stmt = $conn->prepare($sql); // Prepared Statements
+    $stmt->bind_param("ssisi", $land, $regio, $jaar, $maand_week, $id);
     
     if ($stmt->execute()) {
 
@@ -59,10 +69,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 
-function Inputbeveiliging($data) {
-    $data = trim($data);
-    $data = stripslashes($data);
-    $data = htmlspecialchars($data);
-    return $data;
-}
 ?>

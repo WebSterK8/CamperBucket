@@ -1,4 +1,5 @@
 <?php
+require_once 'controlelogin.php';
 require_once '../dbconnect.php';
 
 header('Content-Type: application/json');
