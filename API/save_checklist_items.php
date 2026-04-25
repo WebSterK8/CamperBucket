@@ -1,6 +1,6 @@
 <?php
-require_once 'controlelogin.php';
-require_once '../dbconnect.php';
+require_once 'controlelogin.php'; // login controle
+require_once '../dbconnect.php'; // veilige database connectie
 
 header('Content-Type: application/json');
 
@@ -11,11 +11,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$data) {
         http_response_code(400);
-        echo json_encode(['message' => 'Ongeldige JSON']);
+        echo json_encode(['message' => 'Ongeldige JSON']); // Veilige JSON output
         exit;
     }
 
-    $checklist_id = (int)$data['checklist_id'];
+    // Input opschonen met (int) - altijd een getal
+    $checklist_id = (int)$data['checklist_id']; 
+
     $items = $data['items'];
 
     if (!$checklist_id || !is_array($items)) {
@@ -26,6 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // 1. oude items verwijderen
     $sqlDelete = "DELETE FROM tbl_checklist_items WHERE checklist_id = ?";
+
+    // Prepared Statements
     $stmtDelete = $conn->prepare($sqlDelete);
     $stmtDelete->bind_param("i", $checklist_id);
 

@@ -1,15 +1,16 @@
 <?php
-require_once 'controlelogin.php';
-require_once '../dbconnect.php';
+require_once 'controlelogin.php'; // login controle
+require_once '../dbconnect.php'; // veilige database connectie
 
 header('Content-Type: application/json');
 
 if (!isset($_GET['checklist_id'])) {
     http_response_code(400);
-    echo json_encode(['message' => 'checklist_id ontbreekt']);
+    echo json_encode(['message' => 'checklist_id ontbreekt']); // Veilige JSON output
     exit;
 }
 
+// Input opschonen met (int) - altijd een getal
 $checklistId = (int) $_GET['checklist_id'];
 
 $sql = "
@@ -25,6 +26,7 @@ $sql = "
     ORDER BY i.categorie, i.naam
 ";
 
+// Prepared Statements
 $stmt = $conn->prepare($sql);
 
 if (!$stmt) {
@@ -44,7 +46,7 @@ while ($row = $result->fetch_assoc()) {
     $items[] = $row;
 }
 
-echo json_encode($items);
+echo json_encode($items); // Veilige JSON output
 
 $stmt->close();
 $conn->close();

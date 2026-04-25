@@ -11,10 +11,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     if (!$data) {
         http_response_code(400);
-        echo json_encode(['message' => 'Ongeldige JSON-gegevens.']);
+        echo json_encode(['message' => 'Ongeldige JSON-gegevens.']); // Veilige JSON output
         exit;
     }
     
+    // Input opschonen met trim()
     $land  = trim($data['land']);
     $regio = trim($data['regio']);
     $jaar  = trim($data['jaar']);
@@ -25,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Input validatie: verplichte velden
     if (empty($land) || empty($jaar)) {
         http_response_code(400);
-        echo json_encode(['message' => 'Minstens land en jaar invullen']);
+        echo json_encode(['message' => 'Minstens land en jaar invullen']); 
         exit;
     }
 
