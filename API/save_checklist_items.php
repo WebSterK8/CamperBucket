@@ -1,5 +1,5 @@
 <?php
-require_once 'controlelogin.php'; // login controle
+//require_once 'controlelogin.php'; // login controle
 require_once '../dbconnect.php'; // veilige database connectie
 
 header('Content-Type: application/json');
@@ -9,10 +9,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = file_get_contents('php://input');
     $data = json_decode($input, true);
 
-    if (!$data) {
-        http_response_code(400);
-        echo json_encode(['message' => 'Ongeldige JSON']); // Veilige JSON output
-        exit;
+    // Input validatie
+    if (!isset($data['checklist_id']) || !is_numeric($data['checklist_id'])) {
+    http_response_code(400); 
+    echo json_encode(['message' => 'Ongeldige checklist_id']); // Veilige JSON output
+    exit;
     }
 
     // Input opschonen met (int) - altijd een getal
@@ -49,6 +50,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmtInsert = $conn->prepare($sqlInsert);
 
     foreach ($items as $item) {
+
+        if (!isset($item['item_id']) || !is_numeric($item['item_id'])) {
+        http_response_code(400);
+        echo json_encode(['message' => 'Ongeldige item_id']);
+        exit;
+        }
 
         $item_id = (int)$item['item_id'];
         $checked = (int)$item['checked'];

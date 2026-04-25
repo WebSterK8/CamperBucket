@@ -1,5 +1,5 @@
 <?php
-require_once 'controlelogin.php'; // login controle
+//require_once 'controlelogin.php'; // login controle
 require_once '../dbconnect.php'; // veilige database connectie
 
 header('Content-Type: application/json');

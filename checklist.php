@@ -80,10 +80,10 @@ $camperStuff = [];
                 <div class="card-body">
 
                     <label class="form-label" for="land">Land</label>
-                    <input class="form-control" type="text" id="land" name="land">
+                    <input class="form-control" type="text" id="land" name="land" maxlength="50" required>
                     
                     <label class="form-label" for="regio">Regio</label>
-                    <input class="form-control" type="text" id="regio" name="regio">
+                    <input class="form-control" type="text" id="regio" name="regio" maxlength="100">
 
                 </div>
                 
@@ -111,10 +111,10 @@ $camperStuff = [];
                 <div class="card-body">
 
                     <label class="form-label" for="jaar">Jaar</label>
-                    <input class="form-control" type="text" id="jaar" name="jaar">
+                    <input class="form-control" type="text" id="jaar" name="jaar" maxlength="4" pattern="[0-9]{4}" required>
                     
                     <label class="form-label" for="mnWk">Maand/week</label>
-                    <input class="form-control" type="text" id="mnWk" name="mnWk">
+                    <input class="form-control" type="text" id="mnWk" name="mnWk" maxlength="50" pattern="[a-zA-Z0-9\s\-\/]+">
 
                 </div>
 
@@ -177,7 +177,7 @@ $camperStuff = [];
                     <!-- input group met button addon -->
                     <div class="input-group m-1">
                         <!--<label class="form-label" for="food">Extra food toevoegen aan lijst</label>-->
-                        <input class="form-control" type="text" id="food" placeholder=" Extra food toevoegen aan lijst" aria-label=" toevoegen aan lijst" aria-describedby="button-addon1">
+                        <input class="form-control" type="text" id="food" maxlength="50" placeholder=" Extra food toevoegen aan lijst" aria-label=" toevoegen aan lijst" aria-describedby="button-addon1">
                         <button class="btn btn-outline-dark" type="button" id="button-addon1">Toevoegen</button>
                     </div>
 
@@ -210,7 +210,7 @@ $camperStuff = [];
                     <!-- input group met button addon -->
                     <div class="input-group m-1">
                         <!--<label class="form-label" for="stuff">Extra stuff</label>-->
-                        <input class="form-control"type="text" id="stuff" placeholder=" Extra stuff toevoegen aan lijst" aria-label=" toevoegen aan lijst" aria-describedby="button-addon2">
+                        <input class="form-control"type="text" id="stuff" maxlength="50" placeholder=" Extra stuff toevoegen aan lijst" aria-label=" toevoegen aan lijst" aria-describedby="button-addon2">
                         <button class="btn btn-outline-dark" type="button" id="button-addon2">Toevoegen</button>
                     </div>
 
@@ -335,20 +335,26 @@ async function loadItems() {
 
         data.forEach(item => {
 
-            const li = document.createElement('li');
+            const li = document.createElement('li'); 
             li.className = 'list-group-item';
 
-            li.innerHTML = `
-                <input class="form-check-input me-2"
-                    type="checkbox"
-                    name="${item.categorie}[]"
-                    value="${item.id}"
-                    id="${item.categorie}_${item.id}">
 
-                <label for="${item.categorie}_${item.id}">
-                    ${item.naam}
-                </label>
-            `;
+            const checkbox = document.createElement('input');
+            checkbox.className = 'form-check-input me-2';
+            checkbox.type = 'checkbox';
+            checkbox.name = item.categorie + '[]';
+            checkbox.value = item.id;
+            checkbox.id = item.categorie + '_' + item.id;
+
+            const label = document.createElement('label');
+            label.htmlFor = checkbox.id;
+            label.textContent = item.naam; // veilig (geen HTML uitvoering)
+            //label.className = 'mb-0';
+
+            li.appendChild(checkbox);
+            li.appendChild(label);
+
+
 
             if (item.categorie === 'food') {
                 foodList.appendChild(li);
