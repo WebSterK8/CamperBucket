@@ -80,10 +80,10 @@ $camperStuff = [];
                 <div class="card-body">
 
                     <label class="form-label" for="land">Land</label>
-                    <input class="form-control" type="text" id="land" name="land" maxlength="50" required>
+                    <input class="form-control" type="text" id="land" name="land" maxlength="50" pattern="[a-zA-ZÀ-ÿ\s\-']+" required title="Alleen letters, spaties, koppeltekens en apostrofs toegestaan">
                     
                     <label class="form-label" for="regio">Regio</label>
-                    <input class="form-control" type="text" id="regio" name="regio" maxlength="100">
+                    <input class="form-control" type="text" id="regio" name="regio" maxlength="100" pattern="[a-zA-ZÀ-ÿ\s\-']+" title="Alleen letters, spaties, koppeltekens en apostrofs toegestaan">
 
                 </div>
                 
@@ -111,10 +111,10 @@ $camperStuff = [];
                 <div class="card-body">
 
                     <label class="form-label" for="jaar">Jaar</label>
-                    <input class="form-control" type="text" id="jaar" name="jaar" maxlength="4" pattern="[0-9]{4}" required>
+                    <input class="form-control" type="text" id="jaar" name="jaar" maxlength="4" pattern="[0-9]{4}" required title="Voer een geldig jaar in (4 cijfers)">
                     
                     <label class="form-label" for="mnWk">Maand/week</label>
-                    <input class="form-control" type="text" id="mnWk" name="mnWk" maxlength="50" pattern="[a-zA-Z0-9\s\-\/]+">
+                    <input class="form-control" type="text" id="mnWk" name="mnWk" maxlength="50" pattern="[a-zA-Z0-9\s\-\/]+" title="Alleen letters, cijfers, spaties, koppeltekens en slash toegestaan">
 
                 </div>
 
@@ -310,12 +310,13 @@ async function loadChecklists() {
         data.forEach(item => {
             const option = document.createElement('option');
             option.value = item.id; // de waarde wordt het ID
-            option.textContent = item.titel + " (" + item.jaar + ")";
+            option.textContent = item.titel + " (" + item.jaar + ")";  // Veilig: textContent
             select.appendChild(option);
         });
 
     } catch (error) {
         console.error("Fout bij laden checklists:", error);
+        alert("Kon checklists niet laden. Vernieuw de pagina.");
     }
 }
 
@@ -348,7 +349,7 @@ async function loadItems() {
 
             const label = document.createElement('label');
             label.htmlFor = checkbox.id;
-            label.textContent = item.naam; // veilig (geen HTML uitvoering)
+            label.textContent = item.naam; // veilig door textContent (ipv innerHTML)
             //label.className = 'mb-0';
 
             li.appendChild(checkbox);
@@ -365,6 +366,7 @@ async function loadItems() {
 
     } catch (error) {
         console.error("Fout bij laden items:", error);
+        alert("Kon items niet laden. Vernieuw de pagina.");
     }
 }
 
@@ -401,6 +403,7 @@ async function loadChecklistItems(id) {
 
     } catch (error) {
         console.error("Fout bij laden checklist items:", error);
+        alert("Kon checklist items niet laden.");
     }
 }
 
@@ -455,7 +458,7 @@ document.getElementById('create_list').addEventListener('submit', async (event) 
         // Fetch API-aanroep stuurt JSON naar PHP API (data versturen naar backend)
         const response = await fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' }, // beveiliging data-overdracht
             body: JSON.stringify(data)
         });
         
@@ -496,6 +499,7 @@ document.getElementById('create_list').addEventListener('submit', async (event) 
 
     } catch (error) {
         console.error("Fout:", error);
+        alert("Kon checklist niet opslaan. Probeer opnieuw.");
     }
 
 });
@@ -507,7 +511,7 @@ document.getElementById('update_list').addEventListener('submit', async (event) 
     event.preventDefault();
 
     if (!checklistId) {
-        console.error("Geen checklist geselecteerd");
+        alert("Geen checklist geselecteerd");
         return;
     }
 
@@ -536,10 +540,15 @@ document.getElementById('update_list').addEventListener('submit', async (event) 
 
         const result = await response.json();
 
-        if (DEBUG) console.log("Opslaan resultaat:", result);
+        if (result.success) {
+            if (DEBUG) console.log("Opslaan resultaat:", result);
+        } else {
+            alert("Kon checklist niet opslaan: " + (result.error || "Onbekende fout"));
+        }
 
     } catch (error) {
         console.error("Fout bij opslaan checklist items:", error);
+        alert("Kon items niet opslaan. Probeer opnieuw.");
     }
 });
 
@@ -548,9 +557,21 @@ document.getElementById('update_list').addEventListener('submit', async (event) 
 document.getElementById('button-addon1').addEventListener('click', async () => {
 
     const input = document.getElementById('food');
-    const naam = input.value.trim();
+    const naam = input.value.trim(); // trim() validatie
 
-    if (!naam) return;
+    // Regex: alleen letters, spaties, koppeltekens en apostrofs toestaan
+    const nameRegex = /^[a-zA-ZÀ-ÿ\s\-']+$/;
+
+    if (!naam) { // lege input check
+        alert("Voer een item in");
+        return;
+    } 
+
+    if (!nameRegex.test(naam)) {
+        alert("Alleen letters, spaties, koppeltekens en apostrofs zijn toegestaan");
+        return;
+    } 
+
 
     const response = await fetch('API/add_item.php', {
         method: 'POST',
@@ -573,18 +594,19 @@ document.getElementById('button-addon1').addEventListener('click', async () => {
         const id = result.id;
         const checkboxId = 'food_' + id;
 
-        li.innerHTML = `
-            <input class="form-check-input me-2"
-                type="checkbox"
-                name="food[]"
-                value="${id}"
-                id="${checkboxId}">
+        const checkbox = document.createElement('input');
+        checkbox.className = 'form-check-input me-2';
+        checkbox.type = 'checkbox';
+        checkbox.name = 'food[]';
+        checkbox.value = id;
+        checkbox.id = checkboxId;
 
-            <label for="${checkboxId}">
-                ${result.naam}
-            </label>
-        `;
+        const label = document.createElement('label');
+        label.htmlFor = checkboxId;
+        label.textContent = result.naam;  // Veilig: textContent
 
+        li.appendChild(checkbox);
+        li.appendChild(label);
         foodList.appendChild(li);
 
         input.value = '';
@@ -599,9 +621,21 @@ document.getElementById('button-addon1').addEventListener('click', async () => {
 document.getElementById('button-addon2').addEventListener('click', async () => {
 
     const input = document.getElementById('stuff');
-    const naam = input.value.trim();
+    const naam = input.value.trim(); // trim() validatie
 
-    if (!naam) return;
+    // Regex: alleen letters, spaties, koppeltekens en apostrofs toestaan
+    const nameRegex = /^[a-zA-ZÀ-ÿ\s\-']+$/;
+
+    if (!naam) { // lege input check
+        alert("Voer een item in");
+        return;
+    } 
+
+    if (!nameRegex.test(naam)) {
+        alert("Alleen letters, spaties, koppeltekens en apostrofs zijn toegestaan");
+        return;
+    } 
+
 
     const response = await fetch('API/add_item.php', {
         method: 'POST',
@@ -624,21 +658,24 @@ document.getElementById('button-addon2').addEventListener('click', async () => {
         const id = result.id;
         const checkboxId = 'stuff_' + id;
 
-        li.innerHTML = `
-            <input class="form-check-input me-2"
-                type="checkbox"
-                name="stuff[]"
-                value="${id}"
-                id="${checkboxId}">
+        const checkbox = document.createElement('input');
+        checkbox.className = 'form-check-input me-2';
+        checkbox.type = 'checkbox';
+        checkbox.name = 'stuff[]';
+        checkbox.value = id;
+        checkbox.id = checkboxId;
 
-            <label for="${checkboxId}">
-                ${result.naam}
-            </label>
-        `;
+        const label = document.createElement('label');
+        label.htmlFor = checkboxId;
+        label.textContent = result.naam;  // Veilig: textContent
 
+        li.appendChild(checkbox);
+        li.appendChild(label);
         stuffList.appendChild(li);
 
         input.value = '';
+    } else {
+        alert("Kon item niet toevoegen: " + (result.error || "Onbekende fout"));
     }
 });
 

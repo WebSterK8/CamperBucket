@@ -37,6 +37,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    // Input validatie: lengte + regex (overeenkomstig frontend)
+    if (strlen($land) > 50 || !preg_match("/^[a-zA-ZÀ-ÿ\s\-']+$/", $land)) {
+        http_response_code(400);
+        echo json_encode(['message' => 'Land: max 50 letters, spaties, koppeltekens of apostrofs']);
+        exit;
+    }
+
+    if (strlen($regio) > 100 || (strlen($regio) > 0 && !preg_match("/^[a-zA-ZÀ-ÿ\s\-']+$/", $regio))) {
+        http_response_code(400);
+        echo json_encode(['message' => 'Regio: max 100 letters, spaties, koppeltekens of apostrofs']);
+        exit;
+    }
+
+    if (strlen($jaar) !== 4 || !preg_match("/^[0-9]{4}$/", $jaar)) {
+        http_response_code(400);
+        echo json_encode(['message' => 'Jaar: exact 4 cijfers']);
+        exit;
+    }
+
+    if (strlen($maand_week) > 50 || (strlen($maand_week) > 0 && !preg_match("/^[a-zA-Z0-9\s\-\/]+$/", $maand_week))) {
+        http_response_code(400);
+        echo json_encode(['message' => 'Maand/week: max 50 tekens (letters, cijfers, spaties, - of /)']);
+        exit;
+    }
+
     
     $sql = "INSERT INTO tbl_checklist (land, regio, jaar, maand_week, titel)
     VALUES (?, ?, ?, ?, ?)";
@@ -82,7 +107,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $stmt->close();
-    $stmtItems->close();
+    
+    if (isset($stmtItems)) {
+        $stmtItems->close();
+    }
     $conn->close();
 }
 
