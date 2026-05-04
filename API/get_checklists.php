@@ -4,9 +4,11 @@ require_once '../dbconnect.php'; // veilige database connectie
 
 header('Content-Type: application/json');
 
+// DROPDOWN MENU VULLEN met JS async function loadChecklists()
+
 // hardcoded querie SELECT - geen gebruikersinput
-$sql = "SELECT id, titel, land, jaar 
-        FROM tbl_checklist 
+$sql = "SELECT id, land, regio, jaar, maand_week
+        FROM tbl_checklist
         ORDER BY id DESC";
 
 $result = $conn->query($sql);

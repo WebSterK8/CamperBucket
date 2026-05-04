@@ -4,8 +4,6 @@ require_once '../dbconnect.php'; // veilige database connectie
 
 header('Content-Type: application/json');
 
-//SELECT * FROM tbl_items WHERE categorie = 'food';
-//SELECT * FROM tbl_items WHERE categorie = 'stuff';
 
 // hardcoded querie SELECT - geen gebruikersinput
 $sql = "SELECT id, naam, categorie, standaard 

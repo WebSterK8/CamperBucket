@@ -13,6 +13,12 @@ if (!isset($_GET['checklist_id'])) {
 // Input opschonen met (int) - altijd een getal
 $checklistId = (int) $_GET['checklist_id'];
 
+if ($checklistId <= 0) {
+    http_response_code(400);
+    echo json_encode(['message' => 'Ongeldige checklist_id']); // Veilige JSON output
+    exit;
+}
+
 $sql = "
     SELECT 
         ci.checklist_id,

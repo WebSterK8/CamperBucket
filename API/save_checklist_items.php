@@ -9,17 +9,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = file_get_contents('php://input');
     $data = json_decode($input, true);
 
+    if (!$data) {
+        http_response_code(400);
+        echo json_encode(['message' => 'Ongeldige JSON-gegevens.']); // Veilige JSON output
+        exit;
+    }
+
     // Input validatie
     if (!isset($data['checklist_id']) || !is_numeric($data['checklist_id'])) {
-    http_response_code(400); 
-    echo json_encode(['message' => 'Ongeldige checklist_id']); // Veilige JSON output
-    exit;
+        http_response_code(400);
+        echo json_encode(['message' => 'Ongeldige checklist_id']); // Veilige JSON output
+        exit;
     }
 
     // Input opschonen met (int) - altijd een getal
-    $checklist_id = (int)$data['checklist_id']; 
+    $checklist_id = (int)$data['checklist_id'];
 
-    $items = $data['items'];
+    $items = $data['items'] ?? [];
 
     if (!$checklist_id || !is_array($items)) {
         http_response_code(400);
@@ -58,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $item_id = (int)$item['item_id'];
-        $checked = (int)$item['checked'];
+        $checked = ((int)$item['checked'] === 1) ? 1 : 0; // beperkt tot 0 of 1
 
         $stmtInsert->bind_param("iii", $checklist_id, $item_id, $checked);
 

@@ -21,8 +21,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $jaar  = trim($data['jaar']);
     $maand_week  = trim($data['mnWk']);
 
-    $titel = $land . ' ' . $jaar;
-
     // Input validatie: verplichte velden
     if (empty($land) || empty($jaar)) {
         http_response_code(400);
@@ -63,11 +61,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     
-    $sql = "INSERT INTO tbl_checklist (land, regio, jaar, maand_week, titel)
-    VALUES (?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO tbl_checklist (land, regio, jaar, maand_week)
+    VALUES (?, ?, ?, ?)";
 
     $stmt = $conn->prepare($sql); // query voorbereiden met Prepared Statements, tegen SQL injectie
-    $stmt->bind_param("ssiss", $land, $regio, $jaar, $maand_week, $titel);
+    $stmt->bind_param("ssis", $land, $regio, $jaar, $maand_week);
+    
     
     if ($stmt->execute()) {
 

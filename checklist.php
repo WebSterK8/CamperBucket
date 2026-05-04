@@ -138,6 +138,7 @@ $camperStuff = [];
                 <div class="card-body">
 
                  <button type="submit" class="btn btn-outline-dark">Opslaan</button>
+                 <button type="button" id="btn-verwijder" class="btn btn-outline-danger ms-2" style="display:none;">Verwijderen</button>
 
                 </div>
 
@@ -146,7 +147,7 @@ $camperStuff = [];
         </div>
 
     </div>
-    
+
 
  </form>
 
@@ -276,6 +277,7 @@ document.getElementById('checklistSelect').addEventListener('change', function (
 
         document.getElementById("create_list").style.display = "block"; // dan create_list fomulier zichtbaar in UI
         document.getElementById("update_list").style.display = "none"; // update_list onzichtbaar
+        document.getElementById("btn-verwijder").style.display = "none";
 
         return; //stop hier
     }
@@ -287,8 +289,20 @@ document.getElementById('checklistSelect').addEventListener('change', function (
         console.log("Geselecteerde checklist:", checklistId);
     } 
 
-    document.getElementById("create_list").style.display = "none"; // dan create_list verbergen
-    document.getElementById("update_list").style.display = "block"; // update_list tonen
+    /*document.getElementById("create_list").style.display = "none"; // dan create_list verbergen
+    document.getElementById("update_list").style.display = "block"; // update_list tonen*/
+
+    // velden invullen met data-attributen van de geselecteerde option
+    const selectedOption = this.options[this.selectedIndex];
+    document.getElementById('land').value = selectedOption.dataset.land;
+    document.getElementById('regio').value = selectedOption.dataset.regio;
+    document.getElementById('jaar').value = selectedOption.dataset.jaar;
+    document.getElementById('mnWk').value = selectedOption.dataset.maandWeek;
+
+    // beide formulieren tonen + verwijderknop zichtbaar
+    document.getElementById("create_list").style.display = "block";
+    document.getElementById("update_list").style.display = "block";
+    document.getElementById("btn-verwijder").style.display = "inline-block";
 
     loadChecklistItems(checklistId);
 
@@ -306,11 +320,16 @@ async function loadChecklists() {
 
         // voorkom dubbele opties als pagina opnieuw geladen wordt
         select.innerHTML = '<option value="">-- nieuwe checklist --</option>';
+
         // voor elke checklist een option maken
         data.forEach(item => {
             const option = document.createElement('option');
-            option.value = item.id; // de waarde wordt het ID
-            option.textContent = item.titel + " (" + item.jaar + ")";  // Veilig: textContent
+            option.value = item.id;
+            option.textContent = item.land + ' ' + item.jaar;  // Veilig: textContent
+            option.dataset.land = item.land;
+            option.dataset.regio = item.regio ?? '';
+            option.dataset.jaar = item.jaar;
+            option.dataset.maandWeek = item.maand_week ?? '';
             select.appendChild(option);
         });
 
@@ -492,10 +511,38 @@ document.getElementById('create_list').addEventListener('submit', async (event) 
                 existingInput.value = checklistId; // update waarde
             }
 
-            // UI na opslaan: toon update formulier
+            // dropdown label updaten of nieuwe optie toevoegen
+            const select = document.getElementById('checklistSelect');
+            const selectedOption = select.options[select.selectedIndex];
+
+            if (selectedOption && selectedOption.value !== "") {
+                // bestaande optie updaten
+                selectedOption.textContent = data.land + ' ' + data.jaar;
+                selectedOption.dataset.land = data.land;
+                selectedOption.dataset.regio = data.regio || '';
+                selectedOption.dataset.jaar = data.jaar;
+                selectedOption.dataset.maandWeek = data.mnWk || '';
+            } else {
+                // nieuwe optie toevoegen en selecteren
+                const newOption = document.createElement('option');
+                newOption.value = checklistId;
+                newOption.textContent = data.land + ' ' + data.jaar;
+                newOption.dataset.land = data.land;
+                newOption.dataset.regio = data.regio || '';
+                newOption.dataset.jaar = data.jaar;
+                newOption.dataset.maandWeek = data.mnWk || '';
+                select.appendChild(newOption);
+                select.value = checklistId;
+            }
+
+            // UI na opslaan: verberg locatie/periode formulier, toon items formulier
+            document.getElementById("create_list").style.display = "none";
             document.getElementById("update_list").style.display = "block";
 
+        } else {                                           
+            alert(result.message || 'Onbekende fout');    
         }
+
 
     } catch (error) {
         console.error("Fout:", error);
@@ -503,6 +550,8 @@ document.getElementById('create_list').addEventListener('submit', async (event) 
     }
 
 });
+
+
 
 
 // AANGEVINKTE ITEMS OPHALEN
@@ -679,7 +728,56 @@ document.getElementById('button-addon2').addEventListener('click', async () => {
     }
 });
 
-                
+
+
+
+
+// CHECKLIST VERWIJDEREN
+document.getElementById('btn-verwijder').addEventListener('click', async () => {
+
+    if (!checklistId) return;
+
+    if (!confirm('Ben je zeker dat je deze checklist wil verwijderen?')) return;
+
+    try {
+        const response = await fetch('API/delete_checklist.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: checklistId })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+
+            // optie uit dropdown verwijderen
+            const select = document.getElementById('checklistSelect');
+            const selectedOption = select.options[select.selectedIndex];
+            select.removeChild(selectedOption);
+            select.value = "";
+
+            // UI resetten
+            checklistId = null;
+            document.getElementById('land').value = '';
+            document.getElementById('regio').value = '';
+            document.getElementById('jaar').value = '';
+            document.getElementById('mnWk').value = '';
+            document.getElementById("update_list").style.display = "none";
+            document.getElementById("btn-verwijder").style.display = "none";
+
+            if (DEBUG) console.log("Verwijderd:", result);
+
+        } else {
+            alert(result.message || 'Fout bij verwijderen.');
+        }
+
+    } catch (error) {
+        console.error("Fout bij verwijderen:", error);
+        alert("Kon checklist niet verwijderen. Probeer opnieuw.");
+    }
+});
+
+
 </script>
 
 <?php include 'footer.php';?>
