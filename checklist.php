@@ -275,6 +275,9 @@ document.getElementById('checklistSelect').addEventListener('change', function (
 
         checklistId = null; // er is geen bestaande checklist
 
+        // alle checkboxes unchecken voor nieuwe lijst
+        document.querySelectorAll('#foodList input, #stuffList input').forEach(cb => cb.checked = false);
+
         document.getElementById("create_list").style.display = "block"; // dan create_list fomulier zichtbaar in UI
         document.getElementById("update_list").style.display = "none"; // update_list onzichtbaar
         document.getElementById("btn-verwijder").style.display = "none";
