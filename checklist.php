@@ -258,7 +258,7 @@ $camperStuff = [];
 <script>
 
 
-const DEBUG = true; 
+const DEBUG = false;
 let checklistId = null;
 
 
@@ -292,8 +292,6 @@ document.getElementById('checklistSelect').addEventListener('change', function (
         console.log("Geselecteerde checklist:", checklistId);
     } 
 
-    /*document.getElementById("create_list").style.display = "none"; // dan create_list verbergen
-    document.getElementById("update_list").style.display = "block"; // update_list tonen*/
 
     // velden invullen met data-attributen van de geselecteerde option
     const selectedOption = this.options[this.selectedIndex];

@@ -1,6 +1,6 @@
 <?php
-//require_once 'controlelogin.php'; // login controle
-require_once '../dbconnect.php'; // veilige database connectie
+require_once '../dbconnect.php'; // veilige database connectie (start ook sessie)
+//require_once 'controlelogin.php'; // login controle (activeren zodra login.php bestaat)
 
 header('Content-Type: application/json');
 
@@ -58,9 +58,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     foreach ($items as $item) {
 
         if (!isset($item['item_id']) || !is_numeric($item['item_id'])) {
-        http_response_code(400);
-        echo json_encode(['message' => 'Ongeldige item_id']);
-        exit;
+            http_response_code(400);
+            echo json_encode(['message' => 'Ongeldige item_id']);
+            exit;
         }
 
         $item_id = (int)$item['item_id'];
