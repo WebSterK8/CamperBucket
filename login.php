@@ -6,133 +6,160 @@ if (isset($_SESSION["ingelogd"]) && $_SESSION["ingelogd"] === true) {
     header("location: checklist.php");
     exit;
 }
-
-$username = "";
-$username_err = $password_err = $login_err = "";
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
-    if (empty(trim($_POST["username"]))) {
-        $username_err = "Gebruikersnaam mag niet leeg zijn.";
-    } else {
-        $username = trim(htmlspecialchars($_POST["username"], ENT_QUOTES, 'UTF-8'));
-    }
-
-    if (empty(trim($_POST["psw"]))) {
-        $password_err = "Wachtwoord mag niet leeg zijn.";
-    }
-
-    if (empty($username_err) && empty($password_err)) {
-        $sql = "SELECT id, gebruikersnaam, wachtwoord, rol FROM tbl_gebruikers WHERE gebruikersnaam = ?";
-        if ($stmt = $conn->prepare($sql)) {
-            $stmt->bind_param("s", $param_username);
-            $param_username = $username;
-            if ($stmt->execute()) {
-                $stmt->store_result();
-                if ($stmt->num_rows == 1) {
-                    $stmt->bind_result($id, $gebruikersnaam, $wachtwoord, $rol);
-                    if ($stmt->fetch()) {
-                        if (password_verify($_POST["psw"], $wachtwoord)) {
-                            $_SESSION["ingelogd"] = true;
-                            $_SESSION["ID"] = $id;
-                            $_SESSION["Gebruikersnaam"] = $gebruikersnaam;
-                            $_SESSION["Rol"] = $rol;
-                            header("location: checklist.php");
-                            exit;
-                        } else {
-                            $login_err = "Foute gebruikersnaam of wachtwoord.";
-                        }
-                    }
-                } else {
-                    $login_err = "Foute gebruikersnaam of wachtwoord.";
-                }
-            } else {
-                $login_err = "Er is iets verkeerd gelopen. Probeer opnieuw.";
-            }
-            $stmt->close();
-        }
-        $conn->close();
-    }
-}
 ?>
+
 <!DOCTYPE html>
 <html lang="nl">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - CamperBucket</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="custom.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Login - CamperBucket</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<link href="custom.css" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 </head>
+
 
 <body>
 
 <div class="container-fluid mt-3">
+
     <?php include 'header.php'; ?>
     <?php include 'navbar.php'; ?>
-</div>
-
-<div class="container-lg mt-4">
-
-    <div class="row justify-content-center">
-        <div class="col-12 col-sm-8 col-md-6 col-lg-4">
-
-            <div class="card shadow-sm">
-
-                <div class="card-header bg-alfasage text-darksage fw-bold text-center">
-                    Aanmelden
-                </div>
-
-                <div class="card-body">
-
-                    <?php if (!empty($login_err)): ?>
-                        <div class="alert alert-danger py-2" role="alert">
-                            <?php echo $login_err; ?>
-                        </div>
-                    <?php endif; ?>
-
-                    <form id="loginForm" method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" autocomplete="off" novalidate>
-
-                        <div class="mb-3">
-                            <label for="username" class="form-label">Gebruikersnaam</label>
-                            <input type="text"
-                                   class="form-control <?php echo !empty($username_err) ? 'is-invalid' : ''; ?>"
-                                   id="username" name="username"
-                                   value="<?php echo $username; ?>"
-                                   maxlength="50" autofocus>
-                            <?php if (!empty($username_err)): ?>
-                                <div class="invalid-feedback"><?php echo $username_err; ?></div>
-                            <?php endif; ?>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="psw" class="form-label">Wachtwoord</label>
-                            <input type="password"
-                                   class="form-control <?php echo !empty($password_err) ? 'is-invalid' : ''; ?>"
-                                   id="psw" name="psw">
-                            <?php if (!empty($password_err)): ?>
-                                <div class="invalid-feedback"><?php echo $password_err; ?></div>
-                            <?php endif; ?>
-                        </div>
-
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-outline-dark">Inloggen</button>
-                        </div>
-
-                    </form>
-
-                </div>
-
-            </div>
-
-        </div>
-    </div>
 
 </div>
+
+
+
+<!--main-->
+
+<div class="container-lg mt-2">
+
+    <?php include 'inlogformulier.php';?>
+
+</div>
+
+
 
 <?php include 'footer.php'; ?>
+
+
+
+<script>
+
+// Actieve navigatielink markeren
+var active = 0;
+for (var i = 0; i < document.links.length; i++) {
+if (document.links[i].href === document.URL) {
+active = i;
+}
+}
+document.links[active].className = 'active';
+
+
+// LOGIN FORMULIER - fetch API
+document.getElementById('loginForm').addEventListener('submit', async (event) => {
+
+    event.preventDefault();
+
+    const username = document.getElementById('username').value.trim();
+    const psw = document.getElementById('psw').value.trim();
+
+    const usernameInput = document.getElementById('username');
+    const pswInput = document.getElementById('psw');
+
+    const usernameErr = document.getElementById('usernameErr');
+    const pswErr = document.getElementById('pswErr');
+
+    const loginError = document.getElementById('loginError');
+
+    // Reset foutmeldingen
+    usernameInput.classList.remove('is-invalid');
+    pswInput.classList.remove('is-invalid');
+    usernameErr.textContent = '';
+    pswErr.textContent = '';
+    loginError.classList.add('d-none');
+
+
+    // Client-side validatie
+    let valid = true;
+
+    const usernamePattern = /^[a-zA-Z0-9_\-]{5,15}$/;
+
+    if (!username) {
+        usernameInput.classList.add('is-invalid');
+        usernameErr.textContent = 'Gebruikersnaam mag niet leeg zijn.';
+        valid = false;
+
+    } else if (!usernamePattern.test(username)) {
+        usernameInput.classList.add('is-invalid');
+        usernameErr.textContent = '5 tot 15 tekens: letters, cijfers, _ of -';
+        valid = false;
+    }
+
+    const pswPattern = /^\S{8,}$/;
+
+    if (!psw) {
+        pswInput.classList.add('is-invalid');
+        pswErr.textContent = 'Wachtwoord mag niet leeg zijn.';
+        valid = false;
+
+    } else if (!pswPattern.test(psw)) {
+        pswInput.classList.add('is-invalid');
+        pswErr.textContent = 'Minimaal 8 tekens, geen spaties.';
+        valid = false;
+    }
+
+
+    if (!valid) return;
+
+
+
+    // Fetch naar API
+    try {
+
+        const response = await fetch('API/inlog_invoer.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, psw })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            window.location.href = 'checklist.php';
+        } else {
+            // Fout op specifiek veld tonen
+            if (result.field === 'username') {
+                usernameInput.classList.add('is-invalid');
+                usernameErr.textContent = result.message;
+            } else if (result.field === 'psw') {
+                pswInput.classList.add('is-invalid');
+                pswErr.textContent = result.message;
+            } else {
+                loginError.textContent = result.message || 'Aanmelden mislukt.';
+                loginError.classList.remove('d-none');
+            }
+        }
+
+    } catch (error) {
+        console.error('Fout bij aanmelden:', error);
+        loginError.textContent = 'Er is een fout opgetreden. Probeer opnieuw.';
+        loginError.classList.remove('d-none');
+    }
+
+});
+
+</script>
+
+
 
 </body>
 </html>

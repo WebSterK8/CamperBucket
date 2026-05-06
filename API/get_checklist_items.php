@@ -55,5 +55,6 @@ while ($row = $result->fetch_assoc()) {
 echo json_encode($items); // Veilige JSON output
 
 $stmt->close();
+
 $conn->close();
 ?>

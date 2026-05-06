@@ -110,6 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($stmtItems)) {
         $stmtItems->close();
     }
+    
     $conn->close();
 }
 

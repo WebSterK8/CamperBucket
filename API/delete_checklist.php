@@ -63,6 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $stmtItems->close();
     $stmt->close();
+    
     $conn->close();
 }
 ?>
