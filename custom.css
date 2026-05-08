@@ -67,6 +67,14 @@
 
 
 
+/* NAVBAR actieve link */
+.navbar .nav-link.active,
+.navbar a.active {
+    background-color: var(--sagegreen);
+    color: var(--beige) !important;
+    border-radius: 5px;
+}
+
 
 
 /* KNOPPEN */

@@ -1,3 +1,7 @@
+<?php
+require_once 'dbconnect.php';
+require_once 'controlelogin.php';
+?>
 <!DOCTYPE html>
 <html lang="nl">
 
@@ -315,6 +319,13 @@ async function loadChecklists() {
     try {
         // checklists ophalen
         const response = await fetch('API/get_checklists.php'); // request naar backend
+    
+        // tweede verdedigingslinie: sessie verlopen
+        if (response.status === 401) { 
+            window.location.href = 'login.php'; 
+            return; 
+        }
+
         const data = await response.json(); //JSON omzetten naar JS-array, data = lijst van checklists
 
         const select = document.getElementById('checklistSelect');
@@ -346,6 +357,13 @@ async function loadChecklists() {
 async function loadItems() {
     try {
         const response = await fetch('API/get_items.php');
+
+        // tweede verdedigingslinie: sessie verlopen
+        if (response.status === 401) { 
+            window.location.href = 'login.php'; 
+            return; 
+        }
+
         const data = await response.json();
 
         const foodList = document.getElementById('foodList');
@@ -401,6 +419,13 @@ async function loadChecklistItems(id) {
         }
 
         const response = await fetch('API/get_checklist_items.php?checklist_id=' + id);
+
+        // tweede verdedigingslinie: sessie verlopen
+        if (response.status === 401) {
+            window.location.href = 'login.php';
+            return;
+        }
+
         const data = await response.json();
 
         if (DEBUG) {
@@ -481,8 +506,13 @@ document.getElementById('create_list').addEventListener('submit', async (event) 
             headers: { 'Content-Type': 'application/json' }, // beveiliging data-overdracht
             body: JSON.stringify(data)
         });
-        
-   
+
+        // tweede verdedigingslinie: sessie verlopen
+        if (response.status === 401) {
+            window.location.href = 'login.php';
+            return;
+        }
+
         const result = await response.json();
 
         if (DEBUG) {
@@ -588,6 +618,12 @@ document.getElementById('update_list').addEventListener('submit', async (event) 
             body: JSON.stringify(payload)
         });
 
+        // tweede verdedigingslinie: sessie verlopen
+        if (response.status === 401) {
+            window.location.href = 'login.php';
+            return;
+        }
+
         const result = await response.json();
 
         if (result.success) {
@@ -631,6 +667,12 @@ document.getElementById('button-addon1').addEventListener('click', async () => {
             categorie: 'food'
         })
     });
+
+    // tweede verdedigingslinie: sessie verlopen
+    if (response.status === 401) {
+        window.location.href = 'login.php';
+        return;
+    }
 
     const result = await response.json();
 
@@ -696,6 +738,12 @@ document.getElementById('button-addon2').addEventListener('click', async () => {
         })
     });
 
+    // tweede verdedigingslinie: sessie verlopen
+    if (response.status === 401) {
+        window.location.href = 'login.php';
+        return;
+    }
+
     const result = await response.json();
 
     if (result.success) {
@@ -746,6 +794,12 @@ document.getElementById('btn-verwijder').addEventListener('click', async () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id: checklistId })
         });
+
+        // tweede verdedigingslinie: sessie verlopen
+        if (response.status === 401) {
+            window.location.href = 'login.php';
+            return;
+        }
 
         const result = await response.json();
 

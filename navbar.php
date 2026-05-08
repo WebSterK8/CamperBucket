@@ -1,3 +1,5 @@
+<?php if (session_status() === PHP_SESSION_NONE) { session_start(); } ?>
+
 <nav class="navbar navbar-expand-lg mt-2 navbar-light bg-info rounded">
 
     <div class="container-fluid">
@@ -54,8 +56,14 @@
             <ul class="navbar-nav mt-auto mb-2 mb-lg-0">
 
                 <li class="nav-item">
-                    <a class="nav-link active" href="index.php">Home</a>
+                    <a class="nav-link" href="index.php">Home</a>
                 </li>
+
+                <?php
+                // Toon menu-items op basis van login status
+                if (isset($_SESSION["ingelogd"]) && $_SESSION["ingelogd"] === true) {
+                    // Gebruiker is ingelogd
+                ?>
 
                 <li class="nav-item">
                     <a class="nav-link" href="bucketlist.php">BucketList</a>
@@ -64,20 +72,31 @@
                 <li class="nav-item">
                     <a class="nav-link" href="checklist.php">CheckList</a>
                 </li>
-                    
+
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="ontdek.php" id="navbarDropdown" data-bs-toggle="dropdown">Ontdek</a>
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" href="locatie.php">Locaties</a></li>
-                        <li><a class="dropdown-item" href="afbeeldingen.php">Afbeeldingen</a></li>      
+                        <li><a class="dropdown-item" href="afbeeldingen.php">Afbeeldingen</a></li>
                     </ul>
                 </li>
-                    
+
+                <li class="nav-item">
+                    <span class="nav-link"><?php echo htmlspecialchars($_SESSION["Gebruikersnaam"]); ?></span>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="logout.php">Logout</a>
+                </li>
+
+                <?php } else { // Gebruiker is niet ingelogd ?>
 
                 <li class="nav-item">
                     <a class="nav-link" href="login.php">Login</a>
-                </li>                   
-    
+                </li>
+
+                <?php } ?>
+
 
             </ul>
 
@@ -86,3 +105,12 @@
     </div>
 
 </nav>
+
+<script>
+// Actieve navigatielink markeren
+document.querySelectorAll('.navbar .nav-link').forEach(function(link) {
+    if (link.href === document.URL) {
+        link.classList.add('active');
+    }
+});
+</script>

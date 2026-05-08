@@ -1,3 +1,8 @@
+<?php
+require_once 'dbconnect.php';
+require_once 'controlelogin.php';
+?>
+
 <!DOCTYPE html>
 <html lang="nl">
 <head>
