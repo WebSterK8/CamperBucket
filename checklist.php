@@ -432,6 +432,10 @@ async function loadChecklistItems(id) {
             console.log("Checklist items ontvangen:", data);
         }
 
+        // verwijder custom items van vorige checklist
+        document.querySelectorAll('#foodList li[data-custom], #stuffList li[data-custom]')
+            .forEach(li => li.remove());
+
         // eerst alles unchecken
         document.querySelectorAll('#foodList input, #stuffList input')
             .forEach(cb => cb.checked = false);
@@ -439,11 +443,35 @@ async function loadChecklistItems(id) {
         data.forEach(item => {
 
             const checkboxId = item.categorie + '_' + item.item_id;
-            const checkbox = document.getElementById(checkboxId);
+            let checkbox = document.getElementById(checkboxId);
 
-            if (checkbox) {
-                checkbox.checked = item.checked == 1;
+            // custom item nog niet in DOM: <li> toevoegen
+            if (!checkbox) {
+                const list = item.categorie === 'food'
+                    ? document.getElementById('foodList')
+                    : document.getElementById('stuffList');
+
+                const li = document.createElement('li');
+                li.className = 'list-group-item';
+                li.dataset.custom = 'true';
+
+                checkbox = document.createElement('input');
+                checkbox.className = 'form-check-input me-2';
+                checkbox.type = 'checkbox';
+                checkbox.name = item.categorie + '[]';
+                checkbox.value = item.item_id;
+                checkbox.id = checkboxId;
+
+                const label = document.createElement('label');
+                label.htmlFor = checkboxId;
+                label.textContent = item.naam;
+
+                li.appendChild(checkbox);
+                li.appendChild(label);
+                list.appendChild(li);
             }
+
+            checkbox.checked = item.checked == 1;
         });
 
     } catch (error) {
@@ -664,7 +692,8 @@ document.getElementById('button-addon1').addEventListener('click', async () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             naam: naam,
-            categorie: 'food'
+            categorie: 'food',
+            checklist_id: checklistId
         })
     });
 
@@ -682,6 +711,7 @@ document.getElementById('button-addon1').addEventListener('click', async () => {
 
         const li = document.createElement('li');
         li.className = 'list-group-item';
+        li.dataset.custom = 'true';
 
         const id = result.id;
         const checkboxId = 'food_' + id;
@@ -702,6 +732,8 @@ document.getElementById('button-addon1').addEventListener('click', async () => {
         foodList.appendChild(li);
 
         input.value = '';
+    } else {
+        alert("Kon item niet toevoegen: " + (result.message || "Onbekende fout"));
     }
 });
 
@@ -734,7 +766,8 @@ document.getElementById('button-addon2').addEventListener('click', async () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             naam: naam,
-            categorie: 'stuff'
+            categorie: 'stuff',
+            checklist_id: checklistId
         })
     });
 
@@ -752,6 +785,7 @@ document.getElementById('button-addon2').addEventListener('click', async () => {
 
         const li = document.createElement('li');
         li.className = 'list-group-item';
+        li.dataset.custom = 'true';
 
         const id = result.id;
         const checkboxId = 'stuff_' + id;
@@ -773,7 +807,7 @@ document.getElementById('button-addon2').addEventListener('click', async () => {
 
         input.value = '';
     } else {
-        alert("Kon item niet toevoegen: " + (result.error || "Onbekende fout"));
+        alert("Kon item niet toevoegen: " + (result.message || "Onbekende fout"));
     }
 });
 

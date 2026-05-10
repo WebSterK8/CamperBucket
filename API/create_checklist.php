@@ -73,9 +73,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // INSERT CHECKLIST
         $id = $conn->insert_id;
 
-        // INSERT ITEMS (koppelen aan nieuwe checklist)
+        // INSERT ITEMS (alleen basisitems koppelen aan nieuwe checklist)
         $sqlItems = "INSERT INTO tbl_checklist_items (checklist_id, item_id, checked)
-        SELECT ?, id, 0 FROM tbl_items";
+        SELECT ?, id, 0 FROM tbl_items WHERE checklist_id IS NULL";
 
         $stmtItems = $conn->prepare($sqlItems);
         $stmtItems->bind_param("i", $id);

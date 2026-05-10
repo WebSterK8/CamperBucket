@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = htmlspecialchars($username, ENT_QUOTES, 'UTF-8');
 
     // Gebruiker opzoeken met prepared statement (SQL injection beveiliging)
-    $sql = "SELECT id, gebruikersnaam, wachtwoord, rol FROM tbl_gebruikers WHERE gebruikersnaam = ?";
+    $sql = "SELECT id, gebruikersnaam, wachtwoord FROM tbl_gebruikers WHERE gebruikersnaam = ?";
 
     $stmt = $conn->prepare($sql);
 
@@ -72,7 +72,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION["ingelogd"] = true;
             $_SESSION["ID"] = $row['id'];
             $_SESSION["Gebruikersnaam"] = $row['gebruikersnaam'];
-            $_SESSION["Rol"] = $row['rol'];
 
             http_response_code(200);
             echo json_encode(['success' => true]);

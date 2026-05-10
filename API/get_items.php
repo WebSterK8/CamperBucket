@@ -5,9 +5,10 @@ require_once 'controlelogin.php'; // login controle
 header('Content-Type: application/json');
 
 
-// hardcoded querie SELECT - geen gebruikersinput
-$sql = "SELECT id, naam, categorie, standaard 
-        FROM tbl_items 
+// hardcoded querie SELECT - geen gebruikersinput - alleen basisitems (checklist_id IS NULL)
+$sql = "SELECT id, naam, categorie, standaard
+        FROM tbl_items
+        WHERE checklist_id IS NULL
         ORDER BY categorie, naam";
 
 $result = $conn->query($sql);

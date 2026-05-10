@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // 1. gekoppelde items verwijderen
+    // 1. gekoppelde items verwijderen uit tbl_checklist_items
     $sqlItems = "DELETE FROM tbl_checklist_items WHERE checklist_id = ?";
     $stmtItems = $conn->prepare($sqlItems); // Prepared Statements
     $stmtItems->bind_param("i", $id);
@@ -45,7 +45,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // 2. checklist zelf verwijderen
+    // 2. custom items verwijderen uit tbl_items
+    $sqlCustomItems = "DELETE FROM tbl_items WHERE checklist_id = ?";
+    $stmtCustomItems = $conn->prepare($sqlCustomItems);
+    $stmtCustomItems->bind_param("i", $id);
+
+    if (!$stmtCustomItems->execute()) {
+        http_response_code(500);
+        echo json_encode([
+            'message' => 'Fout bij verwijderen custom items.',
+            'error' => $stmtCustomItems->error
+        ]);
+        exit;
+    }
+
+    $stmtCustomItems->close();
+
+    // 3. checklist zelf verwijderen
     $sql = "DELETE FROM tbl_checklist WHERE id = ?";
     $stmt = $conn->prepare($sql); // Prepared Statements
     $stmt->bind_param("i", $id);
