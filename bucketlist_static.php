@@ -45,7 +45,8 @@ require_once 'controlelogin.php';
 
 <section class="container-lg mt-2 fade-section">
 
- <?php include 'timelineSpreadsheet.php';?>
+ 
+ <?php include 'timelineSpreadsheet.php';?> 
 
 </section>
 

@@ -66,7 +66,7 @@
                 ?>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="bucketlist.php">BucketList</a>
+                    <a class="nav-link" href="bucketlist_dynamic.php">BucketList</a>
                 </li>
 
                 <li class="nav-item">

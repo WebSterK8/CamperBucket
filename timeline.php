@@ -1,20 +1,6 @@
-<!DOCTYPE html>
-<html lang="nl">
-
-<head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Timeline</title>
-
-<link rel="stylesheet"
-href="https://cdn.knightlab.com/libs/timeline3/latest/css/timeline.css">
-
-
+<link rel="stylesheet" href="https://cdn.knightlab.com/libs/timeline3/latest/css/timeline.css">
 
 <style>
-
 
 .tl-slide-content {
     color: #606f60 !important;
@@ -39,30 +25,17 @@ href="https://cdn.knightlab.com/libs/timeline3/latest/css/timeline.css">
     color: #606f60 !important;
 }
 
-
 /* tekst onder afbeeldingen */
 .tl-caption {
     color: #606f60 !important;
 }
-
 
 /* datums op de tijdlijn */
 .tl-timeaxis .tl-timeaxis-tick-text {
     color: #606f60 !important;
 }
 
-/* Hoofdtitel van de pagina */
-h1 {
-    text-align: center;
-    color: #606f60;
-}
-
-
 </style>
-
-</head>
-
-<body>
 
 <h1 class="mt-5" style="text-align: center;">Travelling Timeline</h1>
 
@@ -72,29 +45,18 @@ h1 {
 
 <script>
 
-
-
-// timeline data ophalen uit SPREADSHEET
-
-const timelineData =
-'https://docs.google.com/spreadsheets/d/e/2PACX-1vS9zYNr_XRLUr115gFjjcJl2dYgj3unlxcNODi_r1W8DYPRRPd0Ni6mfGdolSS5bXislxdd6Ed2bzcy/pubhtml';
-
-// optie met Nederlandse datumnotatie
-const options = {
-    language: 'nl'
-};
-
-new TL.Timeline('timeline-embed', timelineData, options);
-
-
-
-
-
+// timeline data ophalen uit database via Fetch API
+fetch('API/get_timeline.php')
+    .then(response => {
+        // tweede verdedigingslinie: sessie verlopen
+        if (response.status === 401) { window.location.href = 'login.php'; return; }
+        return response.json();
+    })
+    .then(data => {
+        new TL.Timeline('timeline-embed', data, { language: 'nl' }); // optie met Nederlandse datumnotatie
+    })
+    .catch(error => {
+        console.error('Fout bij laden timeline:', error);
+    });
 
 </script>
-
-
-
-</body>
-
-</html>
