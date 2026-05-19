@@ -5,8 +5,8 @@
 
         <p>
             &copy; 2026 Kaatje Meers &mdash;
-            <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.nl" target="_blank" rel="noopener" class="text-dark">
-                <img src="https://licensebuttons.net/l/by-nc-sa/4.0/80x15.png" alt="CC BY-NC-SA 4.0">
+            <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.nl" target="_blank" rel="noopener" class="text-dark">
+                <img src="https://licensebuttons.net/l/by-nc-nd/4.0/80x15.png" alt="CC BY-NC-ND 4.0">
                 
             </a>
         </p>
