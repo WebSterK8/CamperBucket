@@ -118,14 +118,7 @@
 
 <!--footer-->
 
-<div class="container-fluid mt-2">
-
-    <div class="mt-2 mb-2 p-2 bg-info text-dark rounded">
-        <button id="downloadPDF">Exporteer als PDF</button>
-        
-    </div>
-
-</div>
+<?php include 'footer_licentie.php';?>
 
 
 
@@ -155,7 +148,7 @@ document.querySelectorAll('.speech-btn').forEach(button => {
 </script>
 
 
-<script>
+<!--<script>
 
 document.getElementById("downloadPDF").addEventListener("click", function()
 {
@@ -172,7 +165,9 @@ const options = {
 html2pdf().set(options).from(element).save();
 });
 
-</script>
+</script>-->
+
+
 
 <!-- fade effect -->
 <script>

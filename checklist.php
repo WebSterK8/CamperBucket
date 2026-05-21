@@ -20,6 +20,8 @@ require_once 'controlelogin.php';
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.js"></script>
 
+<script src="functies.js"></script>
+
 </head>
 
 
@@ -41,8 +43,9 @@ $camperStuff = [];
 ?>
 
 
-<!--main-->
-
+<!--main--> 
+<div id="content"> <!-- content om eventueel als PDF te exporteren-->
+    
 <!-- dropdown menu -->
 <div class="container-lg mt-2">
 
@@ -61,6 +64,9 @@ $camperStuff = [];
     </div>
 
  </div>
+
+
+
 
 
  <!-- bootstrap formulier met bootstrap componenten: card - listgroup - checkboxes - input group - addons - buttons-->
@@ -227,10 +233,6 @@ $camperStuff = [];
 
     </div>
 
-
-
-    
-
     <div class="row mt-4">
 
        <!-- Formulier opslaan card-->
@@ -253,6 +255,8 @@ $camperStuff = [];
 
 
  </form>
+
+</div>
 
 </div>
 
@@ -485,6 +489,7 @@ async function loadChecklistItems(id) {
 async function initChecklistPage() {
     await loadItems();
     await loadChecklists();
+    initPdfDownload('downloadPDF', 'content', 'Checklist.pdf');
 }
 
 
@@ -869,7 +874,7 @@ document.getElementById('btn-verwijder').addEventListener('click', async () => {
 
 </script>
 
-<?php include 'footer.php';?>
+<?php include 'footer_export_PDF.php';?>
 
 </body>
 
