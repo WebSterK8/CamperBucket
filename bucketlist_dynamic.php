@@ -19,6 +19,16 @@ require_once 'controlelogin.php';
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 
+<style>
+.kaart-chevron {
+    font-size: 0.7rem;
+    transition: transform 0.25s ease;
+}
+[data-bs-toggle="collapse"][aria-expanded="true"] .kaart-chevron {
+    transform: rotate(180deg);
+}
+</style>
+
 </head>
 
 
@@ -164,19 +174,54 @@ async function loadReizen() {
 // KAART BOUWEN (DOM - veilig via createElement + textContent)
 function maakKaart(reis) {
 
+    const collapseId = 'collapse-' + reis.id;
+
     const col = document.createElement('div');
     col.className = 'col-12 col-md-4';
     col.id = 'reis-' + reis.id;
 
     const card = document.createElement('div');
-    card.className = 'card h-100 shadow-sm';
+    card.className = 'card shadow-sm';
 
-    // card-header: bestemming
+    // card-header: klikbaar, toont land + datum
     const header = document.createElement('div');
-    header.className = 'card-header bg-alfasage text-darksage fw-bold';
-    header.textContent = reis.land ?? '(geen bestemming)'; // veilig door textContent
+    header.className = 'card-header bg-alfasage text-darksage fw-bold d-flex justify-content-between align-items-center';
+    header.style.cursor = 'pointer';
+    header.setAttribute('data-bs-toggle', 'collapse');
+    header.setAttribute('data-bs-target', '#' + collapseId);
+    header.setAttribute('aria-expanded', 'false');
+    header.setAttribute('aria-controls', collapseId);
 
-    // card-body: foto, beschrijving, datum
+    const landSpan = document.createElement('span');
+    landSpan.textContent = reis.land ?? '(geen bestemming)';
+
+    const rightDiv = document.createElement('div');
+    rightDiv.className = 'd-flex align-items-center gap-2';
+
+    if (reis.start_jaar) {
+        const datumSpan = document.createElement('small');
+        datumSpan.className = 'fw-normal text-muted';
+        let datumTekst = reis.start_jaar;
+        if (reis.start_maand) datumTekst = reis.start_maand + '/' + datumTekst;
+        if (reis.eind_jaar) datumTekst += ' – ' + reis.eind_jaar;
+        datumSpan.textContent = datumTekst;
+        rightDiv.appendChild(datumSpan);
+    }
+
+    const chevron = document.createElement('span');
+    chevron.className = 'kaart-chevron';
+    chevron.textContent = '▼';
+    rightDiv.appendChild(chevron);
+
+    header.appendChild(landSpan);
+    header.appendChild(rightDiv);
+
+    // collapsible sectie: body + footer
+    const collapseDiv = document.createElement('div');
+    collapseDiv.className = 'collapse';
+    collapseDiv.id = collapseId;
+
+    // card-body: foto + beschrijving
     const body = document.createElement('div');
     body.className = 'card-body';
 
@@ -191,18 +236,8 @@ function maakKaart(reis) {
     if (reis.beschrijving) {
         const p = document.createElement('p');
         p.className = 'card-text';
-        p.textContent = reis.beschrijving; // veilig door textContent
+        p.textContent = reis.beschrijving;
         body.appendChild(p);
-    }
-
-    if (reis.start_jaar) {
-        const datum = document.createElement('small');
-        datum.className = 'text-muted d-block';
-        let datumTekst = reis.start_jaar;
-        if (reis.start_maand) datumTekst = reis.start_maand + '/' + datumTekst;
-        if (reis.eind_jaar) datumTekst += ' – ' + reis.eind_jaar;
-        datum.textContent = datumTekst; // veilig door textContent
-        body.appendChild(datum);
     }
 
     // card-footer: bewerken + verwijderen
@@ -212,19 +247,21 @@ function maakKaart(reis) {
     const btnBewerk = document.createElement('button');
     btnBewerk.className = 'btn btn-outline-dark btn-sm';
     btnBewerk.textContent = 'Bewerken';
-    btnBewerk.addEventListener('click', () => openModal(reis));
+    btnBewerk.addEventListener('click', (e) => { e.stopPropagation(); openModal(reis); });
 
     const btnVerwijder = document.createElement('button');
     btnVerwijder.className = 'btn btn-outline-danger btn-sm';
     btnVerwijder.textContent = 'Verwijderen';
-    btnVerwijder.addEventListener('click', () => verwijderReis(reis.id));
+    btnVerwijder.addEventListener('click', (e) => { e.stopPropagation(); verwijderReis(reis.id); });
 
     footer.appendChild(btnBewerk);
     footer.appendChild(btnVerwijder);
 
+    collapseDiv.appendChild(body);
+    collapseDiv.appendChild(footer);
+
     card.appendChild(header);
-    card.appendChild(body);
-    card.appendChild(footer);
+    card.appendChild(collapseDiv);
     col.appendChild(card);
 
     return col;
