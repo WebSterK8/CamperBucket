@@ -1,15 +1,3 @@
-<?php
-require_once 'dbconnect.php';
-require_once 'controlelogin.php';
-?>
-
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Afstand, reistijd en route.</title>
-
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -17,11 +5,6 @@ require_once 'controlelogin.php';
     #map { height: 500px; margin-top: 5px; border-radius: 5px; }
     #result { margin: 10px 0; font-weight: bold; }
 </style>
-
-</head>
-
-
-<body>
 
 <h2>Afstand, reistijd en route berekenen,</h2> <h2>tussen twee locaties naar keuze.</h2>
 
@@ -143,6 +126,3 @@ onclick="resetKaart()">Reset
     }
 
 </script>
-
-</body>
-</html>

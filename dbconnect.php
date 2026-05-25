@@ -1,6 +1,8 @@
 <?php
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) { 
+    session_start(); 
+}
 
 $config = require __DIR__ . '/config/app.php'; /* het resultaat, de array van het bestand app.php wordt toegekend aan variabele $config */
 $servername = $config['database']["servername"];
