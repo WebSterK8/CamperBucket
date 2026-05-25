@@ -55,20 +55,20 @@ while ($row = $result->fetch_assoc()) {
         if (!empty($row['start_jaar'])) {
             $startDate = ['year' => (string) $row['start_jaar']];
             if (!empty($row['start_maand'])) $startDate['month'] = (string) $row['start_maand'];
-            if (!empty($row['start_dag']))   $startDate['day']   = (string) $row['start_dag'];
+            if (!empty($row['start_dag'])) $startDate['day'] = (string) $row['start_dag'];
             $event['start_date'] = $startDate;
         }
 
         if (!empty($row['eind_jaar'])) {
             $endDate = ['year' => (string) $row['eind_jaar']];
             if (!empty($row['eind_maand'])) $endDate['month'] = (string) $row['eind_maand'];
-            if (!empty($row['eind_dag']))   $endDate['day']   = (string) $row['eind_dag'];
+            if (!empty($row['eind_dag'])) $endDate['day'] = (string) $row['eind_dag'];
             $event['end_date'] = $endDate;
         }
 
         $event['text'] = [
             'headline' => $row['land'] ?? '',
-            'text'     => $row['beschrijving'] ?? ''
+            'text' => $row['beschrijving'] ?? ''
         ];
 
         if (!empty($row['foto'])) {

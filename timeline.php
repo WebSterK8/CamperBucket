@@ -37,7 +37,9 @@
 
 </style>
 
-<h1 class="mt-5" style="text-align: center;">Travelling Timeline</h1>
+<h1 class="mt-4 mb-2 ms-5" style="color: #606f60;">Travelling Timeline</h1>
+
+<!--<h1 class="mt-5" style="text-align: center;">Travelling Timeline</h1>-->
 
 <div id="timeline-embed" style="width: 100%; height: 600px;"></div>
 

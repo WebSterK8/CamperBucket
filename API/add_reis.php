@@ -16,16 +16,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Input opschonen met trim()
-    $land         = trim($data['land'] ?? '');
+    $land = trim($data['land'] ?? '');
     $beschrijving = trim($data['beschrijving'] ?? '');
-    $foto         = trim($data['foto'] ?? '');
-    $foto_alt     = trim($data['foto_alt'] ?? '');
-    $start_jaar   = trim($data['start_jaar'] ?? '');
-    $start_maand  = trim($data['start_maand'] ?? '');
-    $start_dag    = trim($data['start_dag'] ?? '');
-    $eind_jaar    = trim($data['eind_jaar'] ?? '');
-    $eind_maand   = trim($data['eind_maand'] ?? '');
-    $eind_dag     = trim($data['eind_dag'] ?? '');
+    $foto = trim($data['foto'] ?? '');
+    $foto_alt = trim($data['foto_alt'] ?? '');
+    $start_jaar = trim($data['start_jaar'] ?? '');
+    $start_maand = trim($data['start_maand'] ?? '');
+    $start_dag = trim($data['start_dag'] ?? '');
+    $eind_jaar = trim($data['eind_jaar'] ?? '');
+    $eind_maand = trim($data['eind_maand'] ?? '');
+    $eind_dag = trim($data['eind_dag'] ?? '');
 
     // Input validatie: verplichte velden
     if (empty($land)) {
@@ -98,15 +98,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // lege strings omzetten naar NULL voor optionele velden
-    $start_jaar   = !empty($start_jaar)  ? (int) $start_jaar  : null;
-    $start_maand  = !empty($start_maand) ? (int) $start_maand : null;
-    $start_dag    = !empty($start_dag)   ? (int) $start_dag   : null;
-    $eind_jaar    = !empty($eind_jaar)   ? (int) $eind_jaar   : null;
-    $eind_maand   = !empty($eind_maand)  ? (int) $eind_maand  : null;
-    $eind_dag     = !empty($eind_dag)    ? (int) $eind_dag    : null;
+    $start_jaar = !empty($start_jaar) ? (int) $start_jaar : null;
+    $start_maand = !empty($start_maand) ? (int) $start_maand : null;
+    $start_dag = !empty($start_dag) ? (int) $start_dag : null;
+    $eind_jaar = !empty($eind_jaar) ? (int) $eind_jaar : null;
+    $eind_maand = !empty($eind_maand) ? (int) $eind_maand : null;
+    $eind_dag = !empty($eind_dag) ? (int) $eind_dag : null;
     $beschrijving = !empty($beschrijving) ? $beschrijving : null;
-    $foto         = !empty($foto)         ? $foto         : null;
-    $foto_alt     = !empty($foto_alt)     ? $foto_alt     : null;
+    $foto = !empty($foto) ? $foto : null;
+    $foto_alt = !empty($foto_alt) ? $foto_alt : null;
 
     $sql = "INSERT INTO tbl_reizen (land, beschrijving, foto, foto_alt, start_jaar, start_maand, start_dag, eind_jaar, eind_maand, eind_dag)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";

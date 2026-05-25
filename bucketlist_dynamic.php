@@ -41,16 +41,16 @@ require_once 'controlelogin.php';
 
 
 <!-- Sectie 1: Timeline -->
-<section class="container-lg mt-2 fade-section">
+<section class="container-lg mt-2 pb-5 fade-section">
     <?php include 'timeline.php';?>
 </section>
 
 
-<!-- Sectie 2: Reizen (dynamisch) -->
-<section class="container-lg mt-2 fade-section">
+<!-- Sectie 2: BucketList (dynamisch) -->
+<section class="container-lg mt-5 fade-section">
 
     <div class="d-flex justify-content-between align-items-center m-5">
-        <h1 style="color: #606f60;">Reizen</h1>
+        <h1 style="color: #606f60;">BucketList</h1>
         <button class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#reizenModal">
             + Reis toevoegen
         </button>
@@ -270,18 +270,18 @@ function maakKaart(reis) {
 
 // MODAL OPENEN (toevoegen of bewerken)
 function openModal(reis = null) {
-    document.getElementById('reisId').value              = reis ? reis.id            : '';
-    document.getElementById('modalTitel').textContent    = reis ? 'Reis bewerken'    : 'Reis toevoegen';
-    document.getElementById('reizenLand').value          = reis ? (reis.land          ?? '') : '';
-    document.getElementById('reizenBeschrijving').value  = reis ? (reis.beschrijving  ?? '') : '';
-    document.getElementById('reizenFoto').value          = reis ? (reis.foto          ?? '') : '';
-    document.getElementById('reizenFotoAlt').value       = reis ? (reis.foto_alt      ?? '') : '';
-    document.getElementById('startJaar').value           = reis ? (reis.start_jaar    ?? '') : '';
-    document.getElementById('startMaand').value          = reis ? (reis.start_maand   ?? '') : '';
-    document.getElementById('startDag').value            = reis ? (reis.start_dag     ?? '') : '';
-    document.getElementById('eindJaar').value            = reis ? (reis.eind_jaar     ?? '') : '';
-    document.getElementById('eindMaand').value           = reis ? (reis.eind_maand    ?? '') : '';
-    document.getElementById('eindDag').value             = reis ? (reis.eind_dag      ?? '') : '';
+    document.getElementById('reisId').value = reis ? reis.id : '';
+    document.getElementById('modalTitel').textContent = reis ? 'Reis bewerken' : 'Reis toevoegen';
+    document.getElementById('reizenLand').value = reis ? (reis.land ?? '') : '';
+    document.getElementById('reizenBeschrijving').value = reis ? (reis.beschrijving ?? '') : '';
+    document.getElementById('reizenFoto').value = reis ? (reis.foto ?? '') : '';
+    document.getElementById('reizenFotoAlt').value = reis ? (reis.foto_alt ?? '') : '';
+    document.getElementById('startJaar').value = reis ? (reis.start_jaar ?? '') : '';
+    document.getElementById('startMaand').value = reis ? (reis.start_maand ?? '') : '';
+    document.getElementById('startDag').value = reis ? (reis.start_dag ?? '') : '';
+    document.getElementById('eindJaar').value = reis ? (reis.eind_jaar ?? '') : '';
+    document.getElementById('eindMaand').value = reis ? (reis.eind_maand ?? '') : '';
+    document.getElementById('eindDag').value = reis ? (reis.eind_dag ?? '') : '';
 
     new bootstrap.Modal(document.getElementById('reizenModal')).show();
 }
@@ -298,14 +298,14 @@ document.getElementById('btnOpslaan').addEventListener('click', async () => {
     const data = {
         land:         land,
         beschrijving: document.getElementById('reizenBeschrijving').value.trim(),
-        foto:         document.getElementById('reizenFoto').value.trim(),
-        foto_alt:     document.getElementById('reizenFotoAlt').value.trim(),
-        start_jaar:   document.getElementById('startJaar').value.trim(),
-        start_maand:  document.getElementById('startMaand').value.trim(),
-        start_dag:    document.getElementById('startDag').value.trim(),
-        eind_jaar:    document.getElementById('eindJaar').value.trim(),
-        eind_maand:   document.getElementById('eindMaand').value.trim(),
-        eind_dag:     document.getElementById('eindDag').value.trim()
+        foto: document.getElementById('reizenFoto').value.trim(),
+        foto_alt: document.getElementById('reizenFotoAlt').value.trim(),
+        start_jaar: document.getElementById('startJaar').value.trim(),
+        start_maand: document.getElementById('startMaand').value.trim(),
+        start_dag: document.getElementById('startDag').value.trim(),
+        eind_jaar: document.getElementById('eindJaar').value.trim(),
+        eind_maand: document.getElementById('eindMaand').value.trim(),
+        eind_dag: document.getElementById('eindDag').value.trim()
     };
 
     if (id) data.id = id;

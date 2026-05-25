@@ -4,7 +4,7 @@ require_once 'controlelogin.php'; // login controle
 
 header('Content-Type: application/json');
 
-// REIZENOVERZICHT OPHALEN voor bucketlist-pagina en timeline
+// REIZEN OPHALEN voor bucketlist en timeline
 
 // hardcoded query SELECT - geen gebruikersinput
 $sql = "SELECT id, intro, land, beschrijving, foto, foto_alt,
