@@ -199,10 +199,11 @@ button:hover {
 
 
 
-
+/* CAROUSEL WORDT NIET MEER GEBRUIKT IN PROGRAMMEERPROJECT, WEL SIDER*/
 
 
 /* Carousel: vaste slidehoogte en cover-images voor consistente slides */
+
 .carousel-inner {
     height: 60vh;
     max-height: 700px;
@@ -270,7 +271,7 @@ button:hover {
 }
 
 
-/* kaart */
+/* kaarten map_leaf_route.php en map_leaf_places.php */ 
 #map { 
     width: 100%; 
     height: 650px; 
@@ -317,6 +318,9 @@ button#searchBtn {
 }
 
 
+
+
+/* map_leaf_route.php en map_leaf_places.php */
 @media (min-width: 992px) {
     #map { height: 650px; } 
 }
