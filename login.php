@@ -1,9 +1,9 @@
 <?php
 require_once 'dbconnect.php';
 
-// Als al ingelogd, doorsturen naar checklist
+// Als al ingelogd, doorsturen naar home
 if (isset($_SESSION["ingelogd"]) && $_SESSION["ingelogd"] === true) {
-    header("location: checklist.php");
+    header("location: index.php");
     exit;
 }
 ?>
@@ -126,7 +126,7 @@ document.getElementById('loginForm').addEventListener('submit', async (event) =>
         const result = await response.json();
 
         if (result.success) {
-            window.location.href = 'checklist.php';
+            window.location.href = 'index.php';
         } else {
             // Fout op specifiek veld tonen
             if (result.field === 'username') {
