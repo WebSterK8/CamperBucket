@@ -1,17 +1,5 @@
-<!DOCTYPE html>
-<html lang="nl">
-
-<head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Timeline</title>
-
 <link rel="stylesheet"
 href="https://cdn.knightlab.com/libs/timeline3/latest/css/timeline.css">
-
-
 
 <style>
 
@@ -62,8 +50,6 @@ h1 {
 
 </head>
 
-<body>
-
 <h1 class="mt-5" style="text-align: center;">Travelling Timeline</h1>
 
 <div id="timeline-embed" style="width: 100%; height: 600px;"></div>
@@ -95,6 +81,3 @@ new TL.Timeline('timeline-embed', timelineData, options);
 
 
 
-</body>
-
-</html>

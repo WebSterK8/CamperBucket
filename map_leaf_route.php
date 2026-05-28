@@ -1,4 +1,5 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
@@ -11,7 +12,7 @@
 <p id="result">Klik op twee punten op de kaart</p>
 
 <button type="button" class="btn btn-lg btn-outline-dark" 
-data-bstoggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-placement="right" 
+data-bs-toggle="tooltip" data-bs-custom-class="custom-tooltip" data-bs-placement="right" 
 title="Klik hier om opnieuw te beginnen."
 onclick="resetKaart()">Reset
 </button>
@@ -71,7 +72,7 @@ onclick="resetKaart()">Reset
     }
 
     // Initialiseer tooltips
-    const tooltipTriggerList = document.querySelectorAll('[data-bstoggle="tooltip"]');
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     const tooltipList =
     [...tooltipTriggerList].map(tooltipTriggerEl => new
     bootstrap.Tooltip(tooltipTriggerEl));

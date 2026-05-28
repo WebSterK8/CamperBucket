@@ -1,14 +1,4 @@
-<!DOCTYPE html>
-<html lang="nl">
-
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initialscale=1.0">
-
-<title>swiper</title>
-
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css">
-<link href="custom.css" rel="stylesheet">
 
 <style>
 
@@ -76,11 +66,6 @@ background-color: var(--darksage);
 </style>
 
 
-</head>
-
-
-<body>
-
 <!-- Swiper Container -->
 <div class="swiper">
 
@@ -143,7 +128,3 @@ const swiper = new Swiper('.swiper', {
     
     });
 </script>
-
-
-</body>
-</html>

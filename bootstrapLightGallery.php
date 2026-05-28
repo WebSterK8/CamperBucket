@@ -1,22 +1,8 @@
-<!DOCTYPE html>
-<html lang="nl">
-
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initialscale=1.0">
-
-<title>Galerij</title>
-
 <link rel="stylesheet"
 href="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.8.1/css/lightgallery-bundle.min.css"/>
 
 <link rel="stylesheet"
 href="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.8.1/css/lg-transitions.min.css"/>
-
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<link href="custom.css" rel="stylesheet">
 
 <style>
 #bootstrap-image-gallery img{
@@ -25,11 +11,6 @@ href="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.8.1/css/lg-transitio
     width:100%;
 }
 </style>
-
-</head>
-
-
-<body>
 
 <div id="bootstrap-image-gallery">
 
@@ -142,6 +123,3 @@ window.lightGallery(container, {
 
 </script>
 
-</body>
-
-</html>

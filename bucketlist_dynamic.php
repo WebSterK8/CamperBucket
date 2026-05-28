@@ -122,6 +122,9 @@ require_once 'controlelogin.php';
 
 <!-- fade effect -->
 <script>
+gsap.registerPlugin(ScrollTrigger); // ScrollTrigger koppelen aan de GSAP-kern voor gebruik
+
+
 gsap.utils.toArray(".fade-section").forEach((section, index, sections) => {
     const nextSection = sections[index + 1];
     if (nextSection) {

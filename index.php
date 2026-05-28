@@ -14,10 +14,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.js"></script>
-
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 
@@ -171,6 +167,9 @@ html2pdf().set(options).from(element).save();
 
 <!-- fade effect -->
 <script>
+gsap.registerPlugin(ScrollTrigger); // ScrollTrigger koppelen aan de GSAP-kern 
+
+
 gsap.utils.toArray(".fade-section").forEach((section, index,
 sections) => {
     const nextSection = sections[index + 1];

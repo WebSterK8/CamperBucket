@@ -1,3 +1,7 @@
+body {
+    overflow-anchor: none;
+}
+
 /* KLEUR variabelen voor de volledige website*/
 :root {
     --grey: #eee; /*voordien rgba(134, 153, 153, 0.25);*/ 

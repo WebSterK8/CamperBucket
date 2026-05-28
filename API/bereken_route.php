@@ -1,7 +1,4 @@
 <?php
-require_once '../dbconnect.php'; // veilige database connectie (start ook sessie)
-require_once 'controlelogin.php'; // login controle
-
 header('Content-Type: application/json');
 
 // Enkel POST toelaten
