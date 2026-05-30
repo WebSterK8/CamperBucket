@@ -49,11 +49,14 @@ require_once 'controlelogin.php';
 <!-- Sectie 2: BucketList (dynamisch) -->
 <section class="container-lg mt-5 fade-section">
 
-    <div class="d-flex justify-content-between align-items-center m-5">
+    <div class="d-flex justify-content-between align-items-center m-3 m-md-5">
+
         <h1 style="color: #606f60;">BucketList</h1>
+
         <button class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#reizenModal">
             + Reis toevoegen
         </button>
+        
     </div>
 
     <div class="row gx-3 gy-3" id="reizenGrid"></div>
@@ -64,11 +67,13 @@ require_once 'controlelogin.php';
 <!-- Modal toevoegen / bewerken -->
 <div class="modal fade" id="reizenModal" tabindex="-1">
     <div class="modal-dialog">
+
         <div class="modal-content">
             <div class="modal-header bg-alfasage">
                 <h5 class="modal-title text-darksage fw-bold" id="modalTitel">Reis toevoegen</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+
             <div class="modal-body">
                 <input type="hidden" id="reisId">
                 <label class="form-label" for="reizenLand">Bestemming *</label>
@@ -130,8 +135,8 @@ gsap.utils.toArray(".fade-section").forEach((section, index, sections) => {
     if (nextSection) {
         ScrollTrigger.create({
             trigger: section,
-            start: "top top",
-            end: "bottom bottom",
+            start: "center top",
+            end: "bottom top",
             scrub: true,
             onUpdate: (self) => {
                 const progress = self.progress;
