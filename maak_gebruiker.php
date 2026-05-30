@@ -1,8 +1,8 @@
 <?php
 require_once 'dbconnect.php';
 
-$gebruikersnaam = 'testuser';    // 5-15 tekens
-$wachtwoord     = 'wachtwoord1'; // min. 8 tekens
+$gebruikersnaam = '';    // 5-15 tekens
+$wachtwoord     = ''; // min. 8 tekens
 
 $hash = password_hash($wachtwoord, PASSWORD_DEFAULT);
 
