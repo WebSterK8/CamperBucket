@@ -53,11 +53,11 @@
 
     <div class="row gx-3 gy-2">
 
-        <div class="col-12 col-md-6">
+        <div class="col-12 col-md-6 jumbotron-col">
 
             <!-- Jumbo Tron -->
             <div class="speech-container p-5 bg-info rounded-3 h-100">
-                
+
                 <div class="text-to-speech"> 
 
                     <h3 class="display-6 mb-3">Welkom</h3>
@@ -74,7 +74,7 @@
         </div>
 
         
-        <div class="col-12 col-md-6">
+        <div class="col-12 col-md-6 jumbotron-col">
 
             <!-- Jumbo Tron -->
             <div class="speech-container p-5 bg-info rounded-3 h-100">
@@ -168,12 +168,28 @@ html2pdf().set(options).from(element).save();
 
 <!-- fade effect -->
 <script>
-gsap.registerPlugin(ScrollTrigger); // ScrollTrigger koppelen aan de GSAP-kern 
+gsap.registerPlugin(ScrollTrigger);
 
+// Op mobiel elke jumbotron-kolom apart animeren zodat de bovenste eerst verdwijnt
+const isMobile = window.innerWidth < 768;
+let fadeSections;
 
-gsap.utils.toArray(".fade-section").forEach((section, index,
-sections) => {
-    const nextSection = sections[index + 1];
+if (isMobile) {
+    fadeSections = [];
+    document.querySelectorAll('.fade-section').forEach(el => {
+        const cols = el.querySelectorAll('.jumbotron-col');
+        if (cols.length > 0) {
+            cols.forEach(col => fadeSections.push(col));
+        } else {
+            fadeSections.push(el);
+        }
+    });
+} else {
+    fadeSections = gsap.utils.toArray('.fade-section');
+}
+
+fadeSections.forEach((section, index) => {
+    const nextSection = fadeSections[index + 1];
     if (nextSection) {
         ScrollTrigger.create({
             trigger: section,
@@ -181,15 +197,14 @@ sections) => {
             end: "bottom bottom",
             scrub: true,
             onUpdate: (self) => {
-                // Hoe ver we zijn
                 const progress = self.progress;
                 gsap.to(section, {
-                    opacity: 1 - progress, // Vervagen
+                    opacity: 1 - progress,
                     overwrite: true,
-                    ease: "power1.out", // Geleidelijke overgang
+                    ease: "power1.out",
                 });
                 gsap.to(nextSection, {
-                    opacity: progress, // Verschijnen
+                    opacity: progress,
                     overwrite: true,
                     ease: "power1.in",
                 });
