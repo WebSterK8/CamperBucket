@@ -80,8 +80,10 @@ require_once 'controlelogin.php';
                 <input class="form-control mb-2" type="text" id="reizenLand" maxlength="100" pattern="[a-zA-ZÀ-ÿ0-9\s\-',\.]+" required>
                 <label class="form-label" for="reizenBeschrijving">Beschrijving</label>
                 <textarea class="form-control mb-2" id="reizenBeschrijving" maxlength="500" rows="3"></textarea>
-                <label class="form-label" for="reizenFoto">Foto (pad)</label>
-                <input class="form-control mb-2" type="text" id="reizenFoto" maxlength="500">
+                <input type="hidden" id="reizenFotoBestaand">
+                <label class="form-label" for="reizenFotoBestand">Foto</label>
+                <input class="form-control mb-2" type="file" id="reizenFotoBestand" accept="image/*">
+                <img id="fotoPreview" class="img-fluid rounded mb-2" alt="Foto preview" style="display:none; max-height:150px;">
                 <label class="form-label" for="reizenFotoAlt">Foto alt-tekst</label>
                 <input class="form-control mb-3" type="text" id="reizenFotoAlt" maxlength="255">
                 <div class="row">
@@ -154,6 +156,15 @@ gsap.utils.toArray(".fade-section").forEach((section, index, sections) => {
 const DEBUG = false;
 
 document.addEventListener('DOMContentLoaded', loadReizen); // voer functie uit wanneer de HTML pagina geladen is
+
+// FOTO PREVIEW bij selectie nieuw bestand
+document.getElementById('reizenFotoBestand').addEventListener('change', function() {
+    const preview = document.getElementById('fotoPreview');
+    if (this.files[0]) {
+        preview.src = URL.createObjectURL(this.files[0]);
+        preview.style.display = 'block';
+    }
+});
 
 
 // REIZEN OPHALEN EN KAARTEN BOUWEN MET FETCH API
@@ -282,8 +293,13 @@ function openModal(reis = null) {
     document.getElementById('modalTitel').textContent = reis ? 'Reis bewerken' : 'Reis toevoegen';
     document.getElementById('reizenLand').value = reis ? (reis.land ?? '') : '';
     document.getElementById('reizenBeschrijving').value = reis ? (reis.beschrijving ?? '') : '';
-    document.getElementById('reizenFoto').value = reis ? (reis.foto ?? '') : '';
     document.getElementById('reizenFotoAlt').value = reis ? (reis.foto_alt ?? '') : '';
+    document.getElementById('reizenFotoBestand').value = '';
+    const bestaandFoto = reis ? (reis.foto ?? '') : '';
+    document.getElementById('reizenFotoBestaand').value = bestaandFoto;
+    const preview = document.getElementById('fotoPreview');
+    if (bestaandFoto) { preview.src = bestaandFoto; preview.style.display = 'block'; }
+    else { preview.src = ''; preview.style.display = 'none'; }
     document.getElementById('startJaar').value = reis ? (reis.start_jaar ?? '') : '';
     document.getElementById('startMaand').value = reis ? (reis.start_maand ?? '') : '';
     document.getElementById('startDag').value = reis ? (reis.start_dag ?? '') : '';
@@ -303,26 +319,26 @@ document.getElementById('btnOpslaan').addEventListener('click', async () => {
 
     if (!land) { alert('Bestemming is verplicht.'); return; }
 
-    const data = {
-        land:         land,
-        beschrijving: document.getElementById('reizenBeschrijving').value.trim(),
-        foto: document.getElementById('reizenFoto').value.trim(),
-        foto_alt: document.getElementById('reizenFotoAlt').value.trim(),
-        start_jaar: document.getElementById('startJaar').value.trim(),
-        start_maand: document.getElementById('startMaand').value.trim(),
-        start_dag: document.getElementById('startDag').value.trim(),
-        eind_jaar: document.getElementById('eindJaar').value.trim(),
-        eind_maand: document.getElementById('eindMaand').value.trim(),
-        eind_dag: document.getElementById('eindDag').value.trim()
-    };
-
-    if (id) data.id = id;
+    const formData = new FormData();
+    formData.append('land', land);
+    formData.append('beschrijving', document.getElementById('reizenBeschrijving').value.trim());
+    formData.append('foto_bestaand', document.getElementById('reizenFotoBestaand').value);
+    formData.append('foto_alt', document.getElementById('reizenFotoAlt').value.trim());
+    formData.append('start_jaar', document.getElementById('startJaar').value.trim());
+    formData.append('start_maand', document.getElementById('startMaand').value.trim());
+    formData.append('start_dag', document.getElementById('startDag').value.trim());
+    formData.append('eind_jaar', document.getElementById('eindJaar').value.trim());
+    formData.append('eind_maand', document.getElementById('eindMaand').value.trim());
+    formData.append('eind_dag', document.getElementById('eindDag').value.trim());
+    if (id) formData.append('id', id);
+    const fotoBestand = document.getElementById('reizenFotoBestand').files[0];
+    if (fotoBestand) formData.append('foto', fotoBestand);
 
     try {
+        // geen Content-Type header: FormData stelt die automatisch in (multipart/form-data)
         const response = await fetch(id ? 'API/update_reis.php' : 'API/add_reis.php', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' }, // beveiliging data-overdracht
-            body: JSON.stringify(data)
+            body: formData
         });
 
         // tweede verdedigingslinie: sessie verlopen
