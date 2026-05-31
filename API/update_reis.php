@@ -20,16 +20,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Input opschonen met trim()
-    $id          = (int) $_POST['id'];
-    $land        = trim($_POST['land']         ?? '');
+    $id = (int) $_POST['id'];
+    $land = trim($_POST['land']         ?? '');
     $beschrijving = trim($_POST['beschrijving'] ?? '');
-    $foto_alt    = trim($_POST['foto_alt']     ?? '');
-    $start_jaar  = trim($_POST['start_jaar']   ?? '');
+    $foto_alt = trim($_POST['foto_alt']     ?? '');
+    $start_jaar = trim($_POST['start_jaar']   ?? '');
     $start_maand = trim($_POST['start_maand']  ?? '');
-    $start_dag   = trim($_POST['start_dag']    ?? '');
-    $eind_jaar   = trim($_POST['eind_jaar']    ?? '');
-    $eind_maand  = trim($_POST['eind_maand']   ?? '');
-    $eind_dag    = trim($_POST['eind_dag']     ?? '');
+    $start_dag = trim($_POST['start_dag']    ?? '');
+    $eind_jaar = trim($_POST['eind_jaar']    ?? '');
+    $eind_maand = trim($_POST['eind_maand']   ?? '');
+    $eind_dag = trim($_POST['eind_dag']     ?? '');
 
     // Foto: nieuw bestand uploaden of bestaand pad bewaren
     $foto = null;
