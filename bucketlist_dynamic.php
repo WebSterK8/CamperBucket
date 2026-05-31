@@ -15,6 +15,7 @@ require_once 'controlelogin.php';
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="custom.css" rel="stylesheet">
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
@@ -24,6 +25,7 @@ require_once 'controlelogin.php';
     font-size: 0.7rem;
     transition: transform 0.25s ease;
 }
+
 [data-bs-toggle="collapse"][aria-expanded="true"] .kaart-chevron {
     transform: rotate(180deg);
 }
@@ -69,23 +71,32 @@ require_once 'controlelogin.php';
     <div class="modal-dialog">
 
         <div class="modal-content">
+
             <div class="modal-header bg-alfasage">
                 <h5 class="modal-title text-darksage fw-bold" id="modalTitel">Reis toevoegen</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <div class="modal-body">
+
                 <input type="hidden" id="reisId">
                 <label class="form-label" for="reizenLand">Bestemming *</label>
+
                 <input class="form-control mb-2" type="text" id="reizenLand" maxlength="100" pattern="[a-zA-ZÀ-ÿ0-9\s\-',\.]+" required>
                 <label class="form-label" for="reizenBeschrijving">Beschrijving</label>
+
                 <textarea class="form-control mb-2" id="reizenBeschrijving" maxlength="500" rows="3"></textarea>
+
                 <input type="hidden" id="reizenFotoBestaand">
+
                 <label class="form-label" for="reizenFotoBestand">Foto</label>
                 <input class="form-control mb-2" type="file" id="reizenFotoBestand" accept="image/*">
+
                 <img id="fotoPreview" class="img-fluid rounded mb-2" alt="Foto preview" style="display:none; max-height:150px;">
+
                 <label class="form-label" for="reizenFotoAlt">Foto alt-tekst</label>
                 <input class="form-control mb-3" type="text" id="reizenFotoAlt" maxlength="255">
+
                 <div class="row">
                     <div class="col">
                         <label class="form-label">Startjaar</label>
@@ -100,6 +111,7 @@ require_once 'controlelogin.php';
                         <input class="form-control" type="number" id="startDag" min="1" max="31">
                     </div>
                 </div>
+
                 <div class="row mt-2">
                     <div class="col">
                         <label class="form-label">Eindjaar</label>
@@ -115,6 +127,7 @@ require_once 'controlelogin.php';
                     </div>
                 </div>
             </div>
+            
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-dark" id="btnOpslaan">Opslaan</button>
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuleren</button>

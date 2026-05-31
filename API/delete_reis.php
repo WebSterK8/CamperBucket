@@ -31,6 +31,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    // fotobestand verwijderen 
+    $fotoStmt = $conn->prepare("SELECT foto FROM tbl_reizen WHERE id = ?");
+    $fotoStmt->bind_param("i", $id);
+    $fotoStmt->execute();
+    $fotoRij = $fotoStmt->get_result()->fetch_assoc();
+    $fotoStmt->close();
+
+    if ($fotoRij && !empty($fotoRij['foto']) && strpos($fotoRij['foto'], 'Afbeeldingen/uploads/') === 0) {
+        $bestandsPad = '../' . $fotoRij['foto'];
+        if (file_exists($bestandsPad)) {
+            unlink($bestandsPad);
+        }
+    }
+
     // reis verwijderen
     $sql = "DELETE FROM tbl_reizen WHERE id = ?";
     $stmt = $conn->prepare($sql); // Prepared Statements

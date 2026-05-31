@@ -13,17 +13,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Input opschonen met trim()
-    $land         = trim($_POST['land'] ?? '');
+    $land = trim($_POST['land'] ?? '');
     $beschrijving = trim($_POST['beschrijving'] ?? '');
-    $foto_alt     = trim($_POST['foto_alt'] ?? '');
+    $foto_alt = trim($_POST['foto_alt'] ?? '');
 
     // Foto: nieuw bestand uploaden of bestaand pad bewaren
     $foto = null;
+    
     if (!empty($_FILES['foto']['name']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
         $toegestaneTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mimeType = finfo_file($finfo, $_FILES['foto']['tmp_name']);
-        finfo_close($finfo);
+        finfo_close($finfo); // object ruimt zichzelf op
 
         if (!in_array($mimeType, $toegestaneTypes)) {
             http_response_code(400);
@@ -35,25 +36,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode(['message' => 'Foto mag maximaal 5 MB zijn.']);
             exit;
         }
+
         $ext = strtolower(pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
         $bestandsnaam = uniqid('reis_') . '.' . $ext;
         $uploadPad = '../Afbeeldingen/uploads/' . $bestandsnaam;
+
         if (!move_uploaded_file($_FILES['foto']['tmp_name'], $uploadPad)) {
             http_response_code(500);
             echo json_encode(['message' => 'Foto kon niet worden opgeslagen.']);
             exit;
         }
+
         $foto = 'Afbeeldingen/uploads/' . $bestandsnaam;
         
     } elseif (!empty($_POST['foto_bestaand'])) {
         $foto = trim($_POST['foto_bestaand']);
     }
-    $start_jaar  = trim($_POST['start_jaar']  ?? '');
+
+    $start_jaar = trim($_POST['start_jaar']  ?? '');
     $start_maand = trim($_POST['start_maand'] ?? '');
-    $start_dag   = trim($_POST['start_dag']   ?? '');
-    $eind_jaar   = trim($_POST['eind_jaar']   ?? '');
-    $eind_maand  = trim($_POST['eind_maand']  ?? '');
-    $eind_dag    = trim($_POST['eind_dag']    ?? '');
+    $start_dag = trim($_POST['start_dag']   ?? '');
+    $eind_jaar = trim($_POST['eind_jaar']   ?? '');
+    $eind_maand = trim($_POST['eind_maand']  ?? '');
+    $eind_dag = trim($_POST['eind_dag']    ?? '');
 
     // Input validatie: verplichte velden
     if (empty($land)) {
