@@ -140,22 +140,26 @@ require_once 'controlelogin.php';
 <?php include 'footer.php';?>
 
 
-<!-- fade effect: alleen sectie 1 fadeert uit bij scrollen -->
+<!-- fade effect-->
 <script>
 gsap.registerPlugin(ScrollTrigger);
+// ScrollTrigger koppelen aan de GSAP-kern voor gebruik
 
 const fadeSection1 = document.querySelector(".fade-section");
 
+// alleen sectie 1 fadeert uit bij scrollen, sectie 2 blijft altijd zichtbaar
 if (fadeSection1) {
     ScrollTrigger.create({
         trigger: fadeSection1,
-        start: "center top",
+        start: "center top", //gsm fix: fade start wanneer center van sectie 1 de viewport-top bereikt
         end: "bottom top",
         scrub: true,
-        invalidateOnRefresh: true,
-        onUpdate: (self) => gsap.set(fadeSection1, { opacity: 1 - self.progress }),
-        onLeave: () => gsap.set(fadeSection1, { opacity: 0 }),
-        onEnterBack: () => gsap.set(fadeSection1, { opacity: 1 }),
+
+        invalidateOnRefresh: true, // herberekent posities bij viewport-resize (iOS Safari URL-balk)
+
+        onUpdate: (self) => gsap.set(fadeSection1, { opacity: 1 - self.progress }), // gsap.set i.p.v. gsap.to: geen opstapelende tweens
+        onLeave: () => gsap.set(fadeSection1, { opacity: 0 }), // vangnet bij snel scrollen
+        onEnterBack: () => gsap.set(fadeSection1, { opacity: 1 }), // vangnet bij snel scrollen
     });
 }
 </script>
