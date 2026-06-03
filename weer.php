@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="nl">
 
 <head>
@@ -13,6 +13,7 @@
 
 <link href="custom.css" rel="stylesheet">
 
+<?php include 'pwa_head.php'; ?>
 </head>
 
 

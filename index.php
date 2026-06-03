@@ -1,4 +1,4 @@
-<?php require_once 'dbconnect.php'; ?>
+﻿<?php require_once 'dbconnect.php'; ?>
 
 <!DOCTYPE html>
 <html lang="nl">
@@ -20,6 +20,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 
 
+<?php include 'pwa_head.php'; ?>
 </head>
 
 

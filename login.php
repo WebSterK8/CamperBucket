@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'dbconnect.php';
 
 // Als al ingelogd, doorsturen naar home
@@ -24,6 +24,7 @@ if (isset($_SESSION["ingelogd"]) && $_SESSION["ingelogd"] === true) {
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
+<?php include 'pwa_head.php'; ?>
 </head>
 
 

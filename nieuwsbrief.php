@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -101,6 +101,7 @@ input:focus {
 
 </style>
 
+<?php include 'pwa_head.php'; ?>
 </head>
 
 <body>

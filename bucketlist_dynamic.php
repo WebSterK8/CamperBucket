@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'dbconnect.php';
 require_once 'controlelogin.php';
 ?>
@@ -31,6 +31,7 @@ require_once 'controlelogin.php';
 }
 </style>
 
+<?php include 'pwa_head.php'; ?>
 </head>
 
 
