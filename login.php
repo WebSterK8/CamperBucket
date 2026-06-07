@@ -20,7 +20,7 @@ if (isset($_SESSION["ingelogd"]) && $_SESSION["ingelogd"] === true) {
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
-<link href="custom.css" rel="stylesheet">
+<link href="camperbucket.css" rel="stylesheet">
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 

@@ -191,11 +191,9 @@ button:hover {
 
 
 
-
 .ratio iframe {
     border-radius: 5px;   
 }
-
 
 
 .video-container {
@@ -214,7 +212,9 @@ button:hover {
 
 
 
-/* CAROUSEL WORDT NIET MEER GEBRUIKT IN PROGRAMMEERPROJECT, WEL SIDER*/
+
+
+/* CAROUSEL WORDT NIET MEER GEBRUIKT IN PROGRAMMEERPROJECT, WEL swiper*/
 
 
 /* Carousel: vaste slidehoogte en cover-images voor consistente slides */
@@ -242,6 +242,7 @@ button:hover {
     border-radius: 6px;
 }
 
+
 /* Helper: use contain for tall/portrait images so whole image fits */
 .carousel-item img.contain {
     object-fit: contain;
@@ -264,7 +265,7 @@ button:hover {
 
 
 
-/* Layout grafiek en kaart  */
+/* Layout grafiek en kaart locaties.php */
 
 .charts {
     display: flex;
@@ -275,12 +276,12 @@ button:hover {
 
 .charts .card {
     flex: 1 1 500px; /* grow, shrink, base width */
-    min-width: 280px;
+   min-width: 280px;
 }
 
 
 
-/* info bij kaart */
+/* info bij kaart locaties.php */
 #info { 
     padding: 8px; 
 }
@@ -308,7 +309,7 @@ button#searchBtn {
 }
 
 
-/* grafiek */
+/* plotly- grafiek locaties.php */
 #tempChart {
     box-sizing: border-box; /* voorkom overflow */      
     display: block;   
@@ -331,7 +332,6 @@ button#searchBtn {
         align-items: stretch;
     }
 }
-
 
 
 
