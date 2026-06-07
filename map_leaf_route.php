@@ -5,6 +5,9 @@
 <style>
     #map { height: 500px; margin-top: 5px; border-radius: 5px; }
     #result { margin: 10px 0; font-weight: bold; }
+    
+    @media (min-width: 992px) { #map { height: 650px; } }
+    @media (max-width: 576px) { #map { height: 50vh; } }
 </style>
 
 <h2>Afstand, reistijd en route berekenen,</h2> <h2>tussen twee locaties naar keuze.</h2>

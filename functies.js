@@ -1,13 +1,5 @@
 
 
-function Inputbeveiliging($data) {
-    $data = trim($data);
-    $data = stripslashes($data);
-    $data = htmlspecialchars($data);
-    return $data;
-}
-
-
 
 function initPdfDownload(buttonId, contentId, filename = 'export.pdf') {
   const button = document.getElementById(buttonId);
