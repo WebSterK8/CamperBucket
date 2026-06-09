@@ -19,6 +19,7 @@ require_once 'controlelogin.php';
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<script src="functies.js"></script>
 
 <style>
 .kaart-chevron {
@@ -188,7 +189,7 @@ async function loadReizen() {
         const response = await fetch('API/get_reizen.php');
 
         // tweede verdedigingslinie: sessie verlopen
-        if (response.status === 401) { window.location.href = 'login.php'; return; }
+        if (checkSession(response)) return;
 
         const data = await response.json();
 
@@ -357,7 +358,7 @@ document.getElementById('btnOpslaan').addEventListener('click', async () => {
         });
 
         // tweede verdedigingslinie: sessie verlopen
-        if (response.status === 401) { window.location.href = 'login.php'; return; }
+        if (checkSession(response)) return;
 
         const result = await response.json();
 
@@ -388,7 +389,7 @@ async function verwijderReis(id) {
         });
 
         // tweede verdedigingslinie: sessie verlopen
-        if (response.status === 401) { window.location.href = 'login.php'; return; }
+        if (checkSession(response)) return;
 
         const result = await response.json();
 

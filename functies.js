@@ -1,5 +1,14 @@
 
 
+// sessie verlopen?
+function checkSession(response) {
+    if (response.status === 401) {
+        window.location.href = 'login.php';
+        return true;
+    }
+    return false;
+}
+
 
 function initPdfDownload(buttonId, contentId, filename = 'export.pdf') {
   const button = document.getElementById(buttonId);

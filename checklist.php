@@ -326,10 +326,7 @@ async function loadChecklists() {
         const response = await fetch('API/get_checklists.php'); // request naar backend
     
         // tweede verdedigingslinie: sessie verlopen
-        if (response.status === 401) { 
-            window.location.href = 'login.php'; 
-            return; 
-        }
+        if (checkSession(response)) return;
 
         const data = await response.json(); //JSON omzetten naar JS-array, data = lijst van checklists
 
@@ -364,10 +361,7 @@ async function loadItems() {
         const response = await fetch('API/get_items.php');
 
         // tweede verdedigingslinie: sessie verlopen
-        if (response.status === 401) { 
-            window.location.href = 'login.php'; 
-            return; 
-        }
+        if (checkSession(response)) return;
 
         const data = await response.json();
 
@@ -426,10 +420,7 @@ async function loadChecklistItems(id) {
         const response = await fetch('API/get_checklist_items.php?checklist_id=' + id);
 
         // tweede verdedigingslinie: sessie verlopen
-        if (response.status === 401) {
-            window.location.href = 'login.php';
-            return;
-        }
+        if (checkSession(response)) return;
 
         const data = await response.json();
 
@@ -542,10 +533,7 @@ document.getElementById('create_list').addEventListener('submit', async (event) 
         });
 
         // tweede verdedigingslinie: sessie verlopen
-        if (response.status === 401) {
-            window.location.href = 'login.php';
-            return;
-        }
+        if (checkSession(response)) return;
 
         const result = await response.json();
 
@@ -653,10 +641,7 @@ document.getElementById('update_list').addEventListener('submit', async (event) 
         });
 
         // tweede verdedigingslinie: sessie verlopen
-        if (response.status === 401) {
-            window.location.href = 'login.php';
-            return;
-        }
+        if (checkSession(response)) return;
 
         const result = await response.json();
 
@@ -704,10 +689,7 @@ document.getElementById('button-addon1').addEventListener('click', async () => {
     });
 
     // tweede verdedigingslinie: sessie verlopen
-    if (response.status === 401) {
-        window.location.href = 'login.php';
-        return;
-    }
+    if (checkSession(response)) return;
 
     const result = await response.json();
 
@@ -778,10 +760,7 @@ document.getElementById('button-addon2').addEventListener('click', async () => {
     });
 
     // tweede verdedigingslinie: sessie verlopen
-    if (response.status === 401) {
-        window.location.href = 'login.php';
-        return;
-    }
+    if (checkSession(response)) return;
 
     const result = await response.json();
 
@@ -836,10 +815,7 @@ document.getElementById('btn-verwijder').addEventListener('click', async () => {
         });
 
         // tweede verdedigingslinie: sessie verlopen
-        if (response.status === 401) {
-            window.location.href = 'login.php';
-            return;
-        }
+        if (checkSession(response)) return;
 
         const result = await response.json();
 

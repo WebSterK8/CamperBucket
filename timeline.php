@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="https://cdn.knightlab.com/libs/timeline3/latest/css/timeline.css">
+﻿<link rel="stylesheet" href="https://cdn.knightlab.com/libs/timeline3/latest/css/timeline.css">
 
 <style>
 
@@ -51,7 +51,7 @@
 fetch('API/get_timeline.php')
     .then(response => {
         // tweede verdedigingslinie: sessie verlopen
-        if (response.status === 401) { window.location.href = 'login.php'; return; }
+        if (checkSession(response)) return;
         return response.json();
     })
     .then(data => {
