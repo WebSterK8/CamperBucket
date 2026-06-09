@@ -1,6 +1,6 @@
 
 
-// sessie verlopen?
+// sessie verlopen? - redirect
 function checkSession(response) {
     if (response.status === 401) {
         window.location.href = 'login.php';
@@ -9,7 +9,7 @@ function checkSession(response) {
     return false;
 }
 
-
+//initialiseert de PDF-exportknop
 function initPdfDownload(buttonId, contentId, filename = 'export.pdf') {
   const button = document.getElementById(buttonId);
   const element = document.getElementById(contentId);
