@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once 'dbconnect.php';
 
 // Als al ingelogd, doorsturen naar home
