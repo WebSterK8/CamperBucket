@@ -1,5 +1,7 @@
 
 
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
 
 <h2 class="text-darksage">Temperaturen per hoofdstad</h2>
 
@@ -14,8 +16,6 @@
 
 <div id="tempChart"></div>
 
-
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
 
 <script>

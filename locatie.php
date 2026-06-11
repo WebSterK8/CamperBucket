@@ -16,18 +16,10 @@ require_once 'controlelogin.php';
 
 <!-- Bootstrap -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<!--<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>-->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <!-- Custom CSS -->
 <link href="custom.css" rel="stylesheet">
-
-
-<!-- Plotly -->
-<!--<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>-->
-
-<!-- Leaflet -->
-<!--<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>-->
 
 <?php include 'pwa_head.php'; ?>
 </head>

@@ -66,19 +66,19 @@
                 ?>
 
                 <li class="nav-item">
+                    <a class="nav-link" href="checklist.php">CheckList</a>
+                </li>
+
+                <li class="nav-item">
                     <a class="nav-link" href="bucketlist_dynamic.php">BucketList</a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="checklist.php">CheckList</a>
+                    <a class="nav-link" href="locatie.php">Locaties</a>
                 </li>
 
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="ontdek.php" id="navbarDropdown" data-bs-toggle="dropdown">Ontdek</a>
-                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <li><a class="dropdown-item" href="locatie.php">Locaties</a></li>
-                        <li><a class="dropdown-item" href="afbeeldingen.php">Afbeeldingen</a></li>
-                    </ul>
+                <li class="nav-item">
+                    <a class="nav-link" href="afbeeldingen.php">Afbeeldingen</a>
                 </li>
 
                 <li class="nav-item">
