@@ -34,7 +34,7 @@ if (isset($_SESSION["ingelogd"]) && $_SESSION["ingelogd"] === true) {
 </head>
 
 
-<body class="login-page">
+<body>
 
 <div class="container-fluid mt-3">
 
