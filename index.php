@@ -21,6 +21,12 @@
 
 
 <?php include 'pwa_head.php'; ?>
+
+<style>
+@media (max-width: 576px) {
+    .header { display: block !important; }
+}
+</style>
 </head>
 
 
