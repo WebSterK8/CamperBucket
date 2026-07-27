@@ -1,9 +1,9 @@
 <?php
 require_once 'dbconnect.php';
 
-// Als al ingelogd, doorsturen naar home
+// Als al ingelogd, doorsturen naar BucketList
 if (isset($_SESSION["ingelogd"]) && $_SESSION["ingelogd"] === true) {
-    header("location: index.php");
+    header("location: bucketlist_dynamic.php");
     exit;
 }
 ?>
@@ -133,7 +133,7 @@ document.getElementById('loginForm').addEventListener('submit', async (event) =>
         const result = await response.json();
 
         if (result.success) {
-            window.location.href = 'index.php';
+            window.location.href = 'bucketlist_dynamic.php';
         } else {
             // Fout op specifiek veld tonen
             if (result.field === 'username') {
