@@ -47,7 +47,7 @@ $camperStuff = [];
 <!--main--> 
 <div id="content"> <!-- content om eventueel als PDF te exporteren-->
     
-<!-- dropdown menu -->
+
 <div class="container-lg mt-2">
 
  <form id="update_list">
@@ -159,86 +159,6 @@ let checklistId = null;
 
 
 document.addEventListener('DOMContentLoaded', initChecklistPage);//voer functie uit wanneer de HTML pagina geladen is
-
-
-
-// EVENTLISTENER DROPDOWN MENU (UI - SWITCHER)
-document.getElementById('checklistSelect').addEventListener('change', function () {
-
-    const selectedId = this.value; // waarde van gekozen option
-
-    if (selectedId === "") {  // als er geen checklist gekozen is --nieuwe checklist
-
-        checklistId = null; // er is geen bestaande checklist
-
-        // alle checkboxes unchecken voor nieuwe lijst
-        document.querySelectorAll('#foodList input, #stuffList input').forEach(cb => cb.checked = false);
-
-        document.getElementById("create_list").style.display = "block"; // dan create_list fomulier zichtbaar in UI
-        document.getElementById("update_list").style.display = "none"; // update_list onzichtbaar
-        document.getElementById("btn-verwijder").style.display = "none";
-
-        return; //stop hier
-    }
-
-    checklistId = selectedId; // als er wel een checklist gekozen is, bewaar het ID 
-
-    // debug info in console
-    if (DEBUG) {
-        console.log("Geselecteerde checklist:", checklistId);
-    } 
-
-
-    // velden invullen met data-attributen van de geselecteerde option
-    const selectedOption = this.options[this.selectedIndex];
-    document.getElementById('land').value = selectedOption.dataset.land;
-    document.getElementById('regio').value = selectedOption.dataset.regio;
-    document.getElementById('jaar').value = selectedOption.dataset.jaar;
-    document.getElementById('mnWk').value = selectedOption.dataset.maandWeek;
-
-    // beide formulieren tonen + verwijderknop zichtbaar
-    document.getElementById("create_list").style.display = "block";
-    document.getElementById("update_list").style.display = "block";
-    document.getElementById("btn-verwijder").style.display = "inline-block";
-
-    loadChecklistItems(checklistId);
-
-});
-
-
-// DROPDOWN <select> MENU VULLEN MET CHECKLISTS uit tbl_checklist MET FETCH API
-async function loadChecklists() {
-    try {
-        // checklists ophalen
-        const response = await fetch('API/get_checklists.php'); // request naar backend
-    
-        // tweede verdedigingslinie: sessie verlopen
-        if (checkSession(response)) return;
-
-        const data = await response.json(); //JSON omzetten naar JS-array, data = lijst van checklists
-
-        const select = document.getElementById('checklistSelect');
-
-        // voorkom dubbele opties als pagina opnieuw geladen wordt
-        select.innerHTML = '<option value="">-- nieuwe checklist --</option>';
-
-        // voor elke checklist een option maken
-        data.forEach(item => {
-            const option = document.createElement('option');
-            option.value = item.id;
-            option.textContent = item.land + ' ' + item.jaar;  // Veilig: textContent
-            option.dataset.land = item.land;
-            option.dataset.regio = item.regio ?? '';
-            option.dataset.jaar = item.jaar;
-            option.dataset.maandWeek = item.maand_week ?? '';
-            select.appendChild(option);
-        });
-
-    } catch (error) {
-        console.error("Fout bij laden checklists:", error);
-        alert("Kon checklists niet laden. Vernieuw de pagina.");
-    }
-}
 
 
 // FASE 1:  DOM bouwen MET FETCH API
@@ -364,10 +284,62 @@ async function loadChecklistItems(id) {
 }
 
 
+// ACTIVE CHECKLIST OPHALEN OF AANMAKEN
+async function ensureChecklistId() {
+    if (checklistId) {
+        return checklistId;
+    }
+
+    try {
+        const response = await fetch('API/get_checklists.php');
+
+        // tweede verdedigingslinie: sessie verlopen
+        if (checkSession(response)) return null;
+
+        const data = await response.json();
+
+        if (Array.isArray(data) && data.length > 0) {
+            checklistId = data[0].id;
+            return checklistId;
+        }
+
+        const createResponse = await fetch('API/create_checklist.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                land: 'Nederland',
+                regio: '',
+                jaar: new Date().getFullYear().toString(),
+                mnWk: ''
+            })
+        });
+
+        // tweede verdedigingslinie: sessie verlopen
+        if (checkSession(createResponse)) return null;
+
+        const result = await createResponse.json();
+
+        if (createResponse.ok && result.id) {
+            checklistId = result.id;
+            return checklistId;
+        }
+
+        throw new Error(result.message || 'Kon geen checklist aanmaken');
+
+    } catch (error) {
+        console.error('Fout bij ophalen van checklist:', error);
+        alert('Kon geen actieve checklist vinden. Probeer opnieuw.');
+        return null;
+    }
+}
+
 // INIT CONTROLLER FLOW
 async function initChecklistPage() {
     await loadItems();
-    await loadChecklists();
+    const activeChecklistId = await ensureChecklistId();
+    if (activeChecklistId) {
+        await loadChecklistItems(activeChecklistId);
+    }
     initPdfDownload('downloadPDF', 'content', 'Checklist.pdf');
 }
 
@@ -380,129 +352,17 @@ async function initChecklistPage() {
 
 
 
-// NIEUWE LIJST MAKEN IN FORMULIER CREATE_LIST OF BESTAANDE LIJST UPDATEN MET FETCH API
-// Functie voor wanneer je klikt op 'Opslaan' in eerste formulier
-document.getElementById('create_list').addEventListener('submit', async (event) => {
-    
-    event.preventDefault(); // voorkom standaard formulierverzending
-
-    // data ophalen
-    const form = event.target; // event.target bevat het HTML element dat het evenement veroorzaakt heeft ( = het formulier) 
-    const formData = new FormData(form); // leest alle inputvelden
-
-    // formData converteren naar JSON
-    const data = {};
-    formData.forEach((value, key) => { // formData omzetten in Javascript-object
-        data[key] = value; // bewaren in data-object
-    });
-    
-    // bepalen create of update
-    try {
-        // endpoint nieuwe checklist maken
-        let url = 'API/create_checklist.php';
-
-        // indien checklistID bestaat (en dus lijst gecreëerd is), update_checklist
-        if (checklistId !== null) {
-            data.id = checklistId; // voeg ID toe
-            url = 'API/update_checklist.php'; // gebruik update API
-        }
-
-        if (DEBUG) {
-            console.log("FORM DATA:", data);
-            console.log("URL:", url);
-        }
-
-        // Fetch API-aanroep stuurt JSON naar PHP API (data versturen naar backend)
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }, // beveiliging data-overdracht
-            body: JSON.stringify(data)
-        });
-
-        // tweede verdedigingslinie: sessie verlopen
-        if (checkSession(response)) return;
-
-        const result = await response.json();
-
-        if (DEBUG) {
-            console.log("API RESPONSE:", result);
-        }
-
-        if (response.ok) {
-
-            // nieuwe checklist - ID opslaan
-            if (checklistId === null) {
-                checklistId = result.id;
-            }
-
-            console.log("Checklist ID:", checklistId);
-
-            // hidden input maken of updaten
-            let existingInput = document.querySelector('input[name="checklist_id"]'); // kijk of input bestaat
-
-            if (!existingInput) { // als geen input bestaat
-                let input = document.createElement("input"); // maak input
-                input.type = "hidden";
-                input.name = "checklist_id";
-                input.value = checklistId;
-                document.getElementById("update_list").appendChild(input);
-
-            } else { // als wel input bestaat
-                existingInput.value = checklistId; // update waarde
-            }
-
-            // dropdown label updaten of nieuwe optie toevoegen
-            const select = document.getElementById('checklistSelect');
-            const selectedOption = select.options[select.selectedIndex];
-
-            if (selectedOption && selectedOption.value !== "") {
-                // bestaande optie updaten
-                selectedOption.textContent = data.land + ' ' + data.jaar;
-                selectedOption.dataset.land = data.land;
-                selectedOption.dataset.regio = data.regio || '';
-                selectedOption.dataset.jaar = data.jaar;
-                selectedOption.dataset.maandWeek = data.mnWk || '';
-            } else {
-                // nieuwe optie toevoegen en selecteren
-                const newOption = document.createElement('option');
-                newOption.value = checklistId;
-                newOption.textContent = data.land + ' ' + data.jaar;
-                newOption.dataset.land = data.land;
-                newOption.dataset.regio = data.regio || '';
-                newOption.dataset.jaar = data.jaar;
-                newOption.dataset.maandWeek = data.mnWk || '';
-                select.appendChild(newOption);
-                select.value = checklistId;
-            }
-
-            // UI na opslaan: verberg locatie/periode formulier, toon items formulier
-            document.getElementById("create_list").style.display = "none";
-            document.getElementById("update_list").style.display = "block";
-
-        } else {                                           
-            alert(result.message || 'Onbekende fout');    
-        }
-
-
-    } catch (error) {
-        console.error("Fout:", error);
-        alert("Kon checklist niet opslaan. Probeer opnieuw.");
-    }
-
-});
-
-
-
-
 // AANGEVINKTE ITEMS OPHALEN
-// Functie voor wanneer je klikt op 'Opslaan' in tweede formulier
+// Functie voor wanneer je klikt op 'Opslaan'
 document.getElementById('update_list').addEventListener('submit', async (event) => {
     event.preventDefault();
 
-    if (!checklistId) {
-        alert("Geen checklist geselecteerd");
+    const activeChecklistId = await ensureChecklistId();
+    if (!activeChecklistId) {
         return;
     }
+
+    checklistId = activeChecklistId;
 
     // alle checkboxes ophalen
     const checkedItems = [];
@@ -680,58 +540,6 @@ document.getElementById('button-addon2').addEventListener('click', async () => {
         input.value = '';
     } else {
         alert("Kon item niet toevoegen: " + (result.message || "Onbekende fout"));
-    }
-});
-
-
-
-
-
-// CHECKLIST VERWIJDEREN
-document.getElementById('btn-verwijder').addEventListener('click', async () => {
-
-    if (!checklistId) return;
-
-    if (!confirm('Ben je zeker dat je deze checklist wil verwijderen?')) return;
-
-    try {
-        const response = await fetch('API/delete_checklist.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: checklistId })
-        });
-
-        // tweede verdedigingslinie: sessie verlopen
-        if (checkSession(response)) return;
-
-        const result = await response.json();
-
-        if (response.ok) {
-
-            // optie uit dropdown verwijderen
-            const select = document.getElementById('checklistSelect');
-            const selectedOption = select.options[select.selectedIndex];
-            select.removeChild(selectedOption);
-            select.value = "";
-
-            // UI resetten
-            checklistId = null;
-            document.getElementById('land').value = '';
-            document.getElementById('regio').value = '';
-            document.getElementById('jaar').value = '';
-            document.getElementById('mnWk').value = '';
-            document.getElementById("update_list").style.display = "none";
-            document.getElementById("btn-verwijder").style.display = "none";
-
-            if (DEBUG) console.log("Verwijderd:", result);
-
-        } else {
-            alert(result.message || 'Fout bij verwijderen.');
-        }
-
-    } catch (error) {
-        console.error("Fout bij verwijderen:", error);
-        alert("Kon checklist niet verwijderen. Probeer opnieuw.");
     }
 });
 
