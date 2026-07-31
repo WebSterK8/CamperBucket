@@ -47,7 +47,7 @@ require_once 'controlelogin.php';
 
 
 <!-- Sectie 1: BucketList (dynamisch) -->
-<section class="container-lg mt-5 fade-section">
+<section class="container-lg mt-5 pb-5 fade-section">
 
     <div class="d-flex justify-content-between align-items-center m-3 m-md-5">
 
@@ -138,7 +138,7 @@ require_once 'controlelogin.php';
 
 
 <!-- Sectie 2: Timeline -->
-<section class="container-lg mt-2 pb-5 fade-section">
+<section class="container-lg mt-5 pb-5 fade-section">
     <?php include 'timeline.php';?>
 </section>
 
