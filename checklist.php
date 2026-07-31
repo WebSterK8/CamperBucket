@@ -70,29 +70,100 @@ $camperStuff = [];
 
 
 
- <div id="create_list" class="mt-3" style="display:block;">
+ <!-- bootstrap formulier met bootstrap componenten: card - listgroup - checkboxes - input group - addons - buttons-->
+ <form id="create_list">
 
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-alfasage text-darksage fw-bold d-flex justify-content-between align-items-center">
-            <span id="travelDestination">Reis</span>
-            <small id="travelDate" class="fw-normal text-muted">-</small>
-        </div>
-    </div>
 
-    <div class="row mt-2">
-        <div class="col-12">
+    <div class="row g-4 mt-1">
+
+
+        <!-- locatie card -->
+        <div class="col-md-6">
+                    
             <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                    <!-- Formulier opslaan card-->
-                    <button type="button" id="btn-verwijder" class="btn btn-outline-danger" style="display:none;">Verwijderen</button>
+
+
+                <div class="card-header bg-alfasage text-darksage fw-bold">
+                    Locatie
                 </div>
+
+
+                <div class="card-body">
+
+                    <label class="form-label" for="land">Land</label>
+                    <input class="form-control" type="text" id="land" name="land" maxlength="50" pattern="[a-zA-ZÀ-ÿ\s\-']+" required title="Alleen letters, spaties, koppeltekens en apostrofs toegestaan">
+                    
+                    <label class="form-label" for="regio">Regio</label>
+                    <input class="form-control" type="text" id="regio" name="regio" maxlength="100" pattern="[a-zA-ZÀ-ÿ\s\-']+" title="Alleen letters, spaties, koppeltekens en apostrofs toegestaan">
+
+                </div>
+                
+
+
+                <!--<div class="card-footer"></div>-->
+
+
             </div>
+
         </div>
+
+
+        <!-- periode card -->
+        <div class="col-md-6">
+
+            <div class="card h-100 shadow-sm">
+
+
+                <div class="card-header bg-alfasage text-darksage fw-bold">
+                    Periode
+                </div>
+
+
+                <div class="card-body">
+
+                    <label class="form-label" for="jaar">Jaar</label>
+                    <input class="form-control" type="text" id="jaar" name="jaar" maxlength="4" pattern="[0-9]{4}" required title="Voer een geldig jaar in (4 cijfers)">
+                    
+                    <label class="form-label" for="mnWk">Maand/week</label>
+                    <input class="form-control" type="text" id="mnWk" name="mnWk" maxlength="50" pattern="[a-zA-Z0-9\s\-\/]+" title="Alleen letters, cijfers, spaties, koppeltekens en slash toegestaan">
+
+                </div>
+
+
+                <!--<div class="card-footer"></div>-->
+
+            </div>
+
+        </div>
+
     </div>
- </div>
+
+    
+    <div class="row mt-4">
+
+       <!-- Formulier opslaan card-->
+        <div class="col-12">
+
+            <div class="card h-100 shadow-sm">
+
+                <div class="card-body">
+
+                 <button type="submit" class="btn btn-outline-dark">Opslaan</button>
+                 <button type="button" id="btn-verwijder" class="btn btn-outline-danger ms-2" style="display:none;">Verwijderen</button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
 
 
- <form id="update_list">
+ </form>
+
+
+ <form id="update_list" style="display:none;">
 
     <div class="row g-4 mt-1">
 
@@ -198,26 +269,11 @@ $camperStuff = [];
 
 const DEBUG = false;
 let checklistId = null;
-const urlParams = new URLSearchParams(window.location.search);
-const initialChecklistId = urlParams.get('checklist_id');
-const initialLand = urlParams.get('land') || '';
-const initialRegio = urlParams.get('regio') || '';
-const initialJaar = urlParams.get('jaar') || '';
-const initialMnWk = urlParams.get('mnWk') || '';
-let currentTravel = null;
 
 
 document.addEventListener('DOMContentLoaded', initChecklistPage);//voer functie uit wanneer de HTML pagina geladen is
 
 
-
-function setChecklistEditorVisible(visible) {
-    const updateList = document.getElementById('update_list');
-
-    if (updateList) {
-        updateList.style.display = visible ? 'block' : 'none';
-    }
-}
 
 // EVENTLISTENER DROPDOWN MENU (UI - SWITCHER)
 document.getElementById('checklistSelect').addEventListener('change', function () {
@@ -231,10 +287,9 @@ document.getElementById('checklistSelect').addEventListener('change', function (
         // alle checkboxes unchecken voor nieuwe lijst
         document.querySelectorAll('#foodList input, #stuffList input').forEach(cb => cb.checked = false);
 
-        document.getElementById('travelDestination').textContent = 'Reis';
-        document.getElementById('travelDate').textContent = '-';
-        setChecklistEditorVisible(false);
-        document.getElementById('btn-verwijder').style.display = 'none';
+        document.getElementById("create_list").style.display = "block"; // dan create_list fomulier zichtbaar in UI
+        document.getElementById("update_list").style.display = "none"; // update_list onzichtbaar
+        document.getElementById("btn-verwijder").style.display = "none";
 
         return; //stop hier
     }
@@ -249,12 +304,15 @@ document.getElementById('checklistSelect').addEventListener('change', function (
 
     // velden invullen met data-attributen van de geselecteerde option
     const selectedOption = this.options[this.selectedIndex];
-    document.getElementById('travelDestination').textContent = selectedOption.dataset.land || '-';
-    document.getElementById('travelDate').textContent = formatChecklistDate(selectedOption.dataset.jaar, selectedOption.dataset.maandWeek) || '-';
+    document.getElementById('land').value = selectedOption.dataset.land;
+    document.getElementById('regio').value = selectedOption.dataset.regio;
+    document.getElementById('jaar').value = selectedOption.dataset.jaar;
+    document.getElementById('mnWk').value = selectedOption.dataset.maandWeek;
 
     // beide formulieren tonen + verwijderknop zichtbaar
-    setChecklistEditorVisible(true);
-    document.getElementById('btn-verwijder').style.display = 'inline-block';
+    document.getElementById("create_list").style.display = "block";
+    document.getElementById("update_list").style.display = "block";
+    document.getElementById("btn-verwijder").style.display = "inline-block";
 
     loadChecklistItems(checklistId);
 
@@ -419,86 +477,10 @@ async function loadChecklistItems(id) {
 }
 
 
-function formatBucketlistDate(reis) {
-    if (!reis) {
-        return '';
-    }
-
-    const year = reis.start_jaar ? String(reis.start_jaar) : '';
-    if (!year) {
-        return '';
-    }
-
-    let text = year;
-    if (reis.start_maand) {
-        text = reis.start_maand + '/' + text;
-    }
-
-    return text;
-}
-
-function applyPresetFields() {
-    const hasPreset = initialLand || initialRegio || initialJaar || initialMnWk;
-
-    if (!hasPreset) {
-        document.getElementById('travelDestination').textContent = '-';
-        document.getElementById('travelDate').textContent = '-';
-        return;
-    }
-
-    document.getElementById('travelDestination').textContent = initialLand || 'Reis';
-    document.getElementById('travelDate').textContent = formatBucketlistDate(currentTravel) || formatChecklistDate(initialJaar, initialMnWk) || '-';
-
-    setChecklistEditorVisible(false);
-    document.getElementById('btn-verwijder').style.display = 'none';
-}
-
-async function loadTravelInfo() {
-    try {
-        const response = await fetch('API/get_reizen.php');
-        if (checkSession(response)) return;
-
-        const data = await response.json();
-        const travelFromUrl = data.find((reise) => {
-            const sameLand = (reise.land ?? '').trim().toLowerCase() === (initialLand || '').trim().toLowerCase();
-            const sameYear = !initialJaar || !reise.start_jaar || String(reise.start_jaar) === String(initialJaar);
-            return sameLand && sameYear;
-        });
-
-        currentTravel = travelFromUrl || null;
-
-        if (currentTravel) {
-            document.getElementById('travelDestination').textContent = currentTravel.land || initialLand || 'Reis';
-            document.getElementById('travelDate').textContent = formatBucketlistDate(currentTravel) || '-';
-        } else {
-            document.getElementById('travelDestination').textContent = initialLand || 'Reis';
-            document.getElementById('travelDate').textContent = formatChecklistDate(initialJaar, initialMnWk) || '-';
-        }
-    } catch (error) {
-        console.error('Fout bij laden reisinfo:', error);
-    }
-}
-
 // INIT CONTROLLER FLOW
 async function initChecklistPage() {
     await loadItems();
     await loadChecklists();
-    await loadTravelInfo();
-
-    if (initialChecklistId) {
-        const select = document.getElementById('checklistSelect');
-        const option = Array.from(select.options).find((item) => item.value === initialChecklistId);
-
-        if (option) {
-            select.value = initialChecklistId;
-            select.dispatchEvent(new Event('change'));
-        } else {
-            applyPresetFields();
-        }
-    } else {
-        applyPresetFields();
-    }
-
     initPdfDownload('downloadPDF', 'content', 'Checklist.pdf');
 }
 
@@ -606,10 +588,9 @@ document.getElementById('create_list').addEventListener('submit', async (event) 
                 select.value = checklistId;
             }
 
-            // UI na opslaan: toon reisinfo + items formulier
-            setChecklistEditorVisible(true);
-            document.getElementById('travelDestination').textContent = data.land || '-';
-            document.getElementById('travelDate').textContent = formatChecklistDate(data.jaar, data.mnWk) || '-';
+            // UI na opslaan: verberg locatie/periode formulier, toon items formulier
+            document.getElementById("create_list").style.display = "none";
+            document.getElementById("update_list").style.display = "block";
 
         } else {                                           
             alert(result.message || 'Onbekende fout');    
@@ -848,10 +829,12 @@ document.getElementById('btn-verwijder').addEventListener('click', async () => {
 
             // UI resetten
             checklistId = null;
-            document.getElementById('travelDestination').textContent = '-';
-            document.getElementById('travelDate').textContent = '-';
-            document.getElementById('update_list').style.display = 'none';
-            document.getElementById('btn-verwijder').style.display = 'none';
+            document.getElementById('land').value = '';
+            document.getElementById('regio').value = '';
+            document.getElementById('jaar').value = '';
+            document.getElementById('mnWk').value = '';
+            document.getElementById("update_list").style.display = "none";
+            document.getElementById("btn-verwijder").style.display = "none";
 
             if (DEBUG) console.log("Verwijderd:", result);
 

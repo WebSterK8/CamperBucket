@@ -190,23 +190,18 @@ document.getElementById('reizenFotoBestand').addEventListener('change', function
 // REIZEN OPHALEN EN KAARTEN BOUWEN MET FETCH API
 async function loadReizen() {
     try {
-        const [reizenResponse, checklistsResponse] = await Promise.all([
-            fetch('API/get_reizen.php'),
-            fetch('API/get_checklists.php')
-        ]);
+        const response = await fetch('API/get_reizen.php');
 
         // tweede verdedigingslinie: sessie verlopen
-        if (checkSession(reizenResponse)) return;
-        if (checkSession(checklistsResponse)) return;
+        if (checkSession(response)) return;
 
-        const reizenData = await reizenResponse.json();
-        const checklistsData = await checklistsResponse.json();
+        const data = await response.json();
 
         const grid = document.getElementById('reizenGrid');
         grid.innerHTML = '';
 
         // intro-rij weggfilteren, enkel gewone reizen tonen
-        reizenData.filter(r => r.intro == 0).forEach(reis => grid.appendChild(maakKaart(reis, checklistsData)));
+        data.filter(r => r.intro == 0).forEach(reis => grid.appendChild(maakKaart(reis)));
 
     } catch (error) {
         console.error('Fout bij laden reizen:', error);
@@ -214,70 +209,9 @@ async function loadReizen() {
     }
 }
 
-function findMatchingChecklist(reis, checklists) {
-    const zoekLand = (reis.land ?? '').trim().toLowerCase();
-
-    return checklists.find((checklist) => {
-        const checklistLand = (checklist.land ?? '').trim().toLowerCase();
-        const sameLand = checklistLand === zoekLand;
-        const checklistJaar = checklist.jaar ? String(checklist.jaar) : '';
-        const reisJaar = reis.start_jaar ? String(reis.start_jaar) : '';
-        const sameYear = reisJaar && checklistJaar && checklistJaar === reisJaar;
-
-        return sameLand && (!reisJaar || !checklistJaar || sameYear);
-    }) || null;
-}
-
-function openChecklistForReis(reis, checklist = null) {
-    const params = new URLSearchParams();
-
-    if (checklist) {
-        params.set('checklist_id', checklist.id);
-    }
-
-    if (reis?.land) params.set('land', reis.land);
-    if (reis?.regio) params.set('regio', reis.regio);
-    if (reis?.start_jaar) params.set('jaar', reis.start_jaar);
-
-    window.location.href = 'checklist.php?' + params.toString();
-}
-
-async function createChecklistForReis(reis) {
-    try {
-        const response = await fetch('API/create_checklist.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                land: reis.land ?? '',
-                regio: reis.regio ?? '',
-                jaar: reis.start_jaar ?? '',
-                mnWk: ''
-            })
-        });
-
-        if (checkSession(response)) return;
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            alert(result.message || 'Kon checklist niet aanmaken.');
-            return;
-        }
-
-        const params = new URLSearchParams();
-        params.set('checklist_id', result.id);
-        params.set('land', reis.land ?? '');
-        params.set('regio', reis.regio ?? '');
-        params.set('jaar', reis.start_jaar ?? '');
-        window.location.href = 'checklist.php?' + params.toString();
-    } catch (error) {
-        console.error('Fout bij aanmaken checklist:', error);
-        alert('Kon checklist niet aanmaken. Probeer opnieuw.');
-    }
-}
 
 // KAART BOUWEN (DOM - veilig via createElement + textContent)
-function maakKaart(reis, checklists = []) {
+function maakKaart(reis) {
 
     const collapseId = 'collapse-' + reis.id;
 
@@ -345,23 +279,9 @@ function maakKaart(reis, checklists = []) {
         body.appendChild(p);
     }
 
-    // card-footer: checklist + bewerken + verwijderen
+    // card-footer: bewerken + verwijderen
     const footer = document.createElement('div');
-    footer.className = 'card-footer d-flex justify-content-end flex-wrap gap-2';
-
-    const matchingChecklist = findMatchingChecklist(reis, checklists);
-
-    const btnChecklist = document.createElement('button');
-    btnChecklist.className = 'btn btn-outline-dark btn-sm';
-    btnChecklist.textContent = matchingChecklist ? 'Open checklist' : 'Nieuwe checklist';
-    btnChecklist.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (matchingChecklist) {
-            openChecklistForReis(reis, matchingChecklist);
-        } else {
-            createChecklistForReis(reis);
-        }
-    });
+    footer.className = 'card-footer d-flex justify-content-end gap-2';
 
     const btnBewerk = document.createElement('button');
     btnBewerk.className = 'btn btn-outline-dark btn-sm';
@@ -373,7 +293,6 @@ function maakKaart(reis, checklists = []) {
     btnVerwijder.textContent = 'Verwijderen';
     btnVerwijder.addEventListener('click', (e) => { e.stopPropagation(); verwijderReis(reis.id); });
 
-    footer.appendChild(btnChecklist);
     footer.appendChild(btnBewerk);
     footer.appendChild(btnVerwijder);
 
