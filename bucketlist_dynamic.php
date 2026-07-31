@@ -44,13 +44,9 @@ require_once 'controlelogin.php';
 </div>
 
 
-<!-- Sectie 1: Timeline -->
-<section class="container-lg mt-2 pb-5 fade-section">
-    <?php include 'timeline.php';?>
-</section>
 
 
-<!-- Sectie 2: BucketList (dynamisch) -->
+<!-- Sectie 1: BucketList (dynamisch) -->
 <section class="container-lg mt-5 fade-section">
 
     <div class="d-flex justify-content-between align-items-center m-3 m-md-5">
@@ -66,6 +62,7 @@ require_once 'controlelogin.php';
     <div class="row gx-3 gy-3" id="reizenGrid"></div>
 
 </section>
+
 
 
 <!-- Modal toevoegen / bewerken -->
@@ -137,6 +134,13 @@ require_once 'controlelogin.php';
         </div>
     </div>
 </div>
+
+
+
+<!-- Sectie 2: Timeline -->
+<section class="container-lg mt-2 pb-5 fade-section">
+    <?php include 'timeline.php';?>
+</section>
 
 
 <?php include 'footer.php';?>
