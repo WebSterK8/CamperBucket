@@ -30,23 +30,16 @@ require_once 'controlelogin.php';
 
 <div class="container-fluid mt-3">
 
-    <?php include 'header.php';?>   
+    <?php include 'header.php';?>
     <?php include 'navbar.php';?>
 
 
 </div>
 
 
-<?php
-$camperFood = [];
-
-$camperStuff = [];
-?>
-
-
-<!--main--> 
+<!--main-->
 <div id="content"> <!-- content om eventueel als PDF te exporteren-->
-    
+
 
 <div class="container-lg mt-2">
 
@@ -54,30 +47,42 @@ $camperStuff = [];
 
     <div class="row g-4 mt-1">
 
-        <!-- Camperfood card met list group en checkboxes -->
+        <?php
+        // categorieën van de checklist: slug => label
+        $categorieen = [
+            'persoonlijke_verzorging'    => 'Persoonlijke verzorging',
+            'kledij'                     => 'Kledij',
+            'slaapgerief'                => 'Slaapgerief',
+            'kampeergerief'              => 'Kampeergerief',
+            'keuken_huishouden'          => 'Keuken &amp; huishouden',
+            'eten_drinken'               => 'Eten en drinken',
+            'elektronica_administratie'  => 'Elektronica &amp; administratie',
+        ];
+        ?>
+
+        <?php foreach ($categorieen as $slug => $label): ?>
+
+        <!-- <?php echo $label; ?> card met list group en checkboxes -->
         <div class="col-md-6">
 
             <div class="card h-100 shadow-sm">
-                
+
                 <div class="card-header bg-alfasage text-darksage fw-bold">
-                    CamperFood
+                    <?php echo $label; ?>
                 </div>
-                
 
                 <div class="card-body">
 
-                 <ul class="list-group list-group-flush" id="foodList"></ul>
-                     
-                </div>
+                 <ul class="list-group list-group-flush" id="list_<?php echo $slug; ?>"></ul>
 
+                </div>
 
                 <div class="card-footer">
 
                     <!-- input group met button addon -->
                     <div class="input-group m-1">
-                        <!--<label class="form-label" for="food">Extra food toevoegen aan lijst</label>-->
-                        <input class="form-control" type="text" id="food" maxlength="50" placeholder=" Extra food toevoegen aan lijst" aria-label=" toevoegen aan lijst" aria-describedby="button-addon1">
-                        <button class="btn btn-outline-dark" type="button" id="button-addon1">Toevoegen</button>
+                        <input class="form-control" type="text" id="item_<?php echo $slug; ?>" maxlength="50" placeholder=" Extra item toevoegen aan lijst" aria-label=" toevoegen aan lijst" aria-describedby="button-addon-<?php echo $slug; ?>">
+                        <button class="btn btn-outline-dark" type="button" id="button-addon-<?php echo $slug; ?>" data-categorie="<?php echo $slug; ?>">Toevoegen</button>
                     </div>
 
                 </div>
@@ -86,38 +91,7 @@ $camperStuff = [];
 
         </div>
 
-
-        <!-- Camperstuff card met list group en checkboxes -->
-        <div class="col-md-6">
-
-            <div class="card h-100 shadow-sm">
-
-                <div class="card-header bg-alfasage text-darksage fw-bold">
-                    CamperStuff
-                </div>
-
-
-                <div class="card-body">
-
-                 <ul class="list-group list-group-flush" id="stuffList"></ul>
-
-                </div>
-
-
-                <div class="card-footer">
-
-                    <!-- input group met button addon -->
-                    <div class="input-group m-1">
-                        <!--<label class="form-label" for="stuff">Extra stuff</label>-->
-                        <input class="form-control"type="text" id="stuff" maxlength="50" placeholder=" Extra stuff toevoegen aan lijst" aria-label=" toevoegen aan lijst" aria-describedby="button-addon2">
-                        <button class="btn btn-outline-dark" type="button" id="button-addon2">Toevoegen</button>
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
+        <?php endforeach; ?>
 
     </div>
 
@@ -139,7 +113,7 @@ $camperStuff = [];
         </div>
 
     </div>
-    
+
 
 
  </form>
@@ -155,14 +129,129 @@ $camperStuff = [];
 
 
 const DEBUG = false;
-let checklistId = null;
+
+// kleuren voor toewijzing, overeenkomstig de kleurcode uit het vroegere Google Drive-document
+const TOEGEWEZEN_KLEUREN = { kaatje: 'var(--sagegreen)', ben: 'var(--blue)' };
 
 
 document.addEventListener('DOMContentLoaded', initChecklistPage);//voer functie uit wanneer de HTML pagina geladen is
 
 
-// FASE 1:  DOM bouwen MET FETCH API
-// basic items ophalen uit tbl_items en checkboxes maken (UI bouwen voor nieuwe lijst)
+// bouwt één <li> op: checkbox (aan/uit vinken) + label + toewijzing + optioneel-toggle + verwijderknop
+function buildItemLi(item) {
+
+    const li = document.createElement('li');
+    li.className = 'list-group-item d-flex align-items-center flex-wrap gap-2';
+    li.dataset.itemId = item.id;
+
+    const checkbox = document.createElement('input');
+    checkbox.className = 'form-check-input';
+    checkbox.type = 'checkbox';
+    checkbox.name = item.categorie + '[]';
+    checkbox.value = item.id;
+    checkbox.id = item.categorie + '_' + item.id;
+    checkbox.checked = item.checked == 1;
+
+    const label = document.createElement('label');
+    label.htmlFor = checkbox.id;
+    label.className = 'flex-grow-1 mb-0 item-label';
+    label.textContent = item.naam; // veilig door textContent (ipv innerHTML)
+
+    // toewijzing: Kaatje / Ben / niemand
+    const select = document.createElement('select');
+    select.className = 'form-select form-select-sm w-auto toegewezen-select';
+    select.setAttribute('aria-label', 'Toegewezen aan');
+
+    [['', '–'], ['kaatje', 'Kaatje'], ['ben', 'Ben']].forEach(([waarde, tekst]) => {
+        const option = document.createElement('option');
+        option.value = waarde;
+        option.textContent = tekst;
+        select.appendChild(option);
+    });
+
+    select.value = item.toegewezen || '';
+    select.addEventListener('change', () => updateToegewezenStyle(select));
+
+    // optioneel: item is een 'misschien meenemen'
+    const optioneelBtn = document.createElement('button');
+    optioneelBtn.type = 'button';
+    optioneelBtn.className = 'btn btn-sm btn-outline-secondary optioneel-toggle';
+    optioneelBtn.title = 'Optioneel item (misschien meenemen)';
+    optioneelBtn.textContent = '?';
+    optioneelBtn.addEventListener('click', () => {
+        setOptioneel(optioneelBtn, label, optioneelBtn.getAttribute('aria-pressed') !== 'true');
+    });
+
+    // item volledig verwijderen
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.className = 'btn btn-sm btn-outline-danger delete-item';
+    deleteBtn.title = 'Item verwijderen';
+    deleteBtn.textContent = '×';
+    deleteBtn.addEventListener('click', () => deleteItem(item.id, li));
+
+    li.appendChild(checkbox);
+    li.appendChild(label);
+    li.appendChild(select);
+    li.appendChild(optioneelBtn);
+    li.appendChild(deleteBtn);
+
+    // initiële stijl toepassen (toewijzing + optioneel)
+    updateToegewezenStyle(select);
+    setOptioneel(optioneelBtn, label, item.optioneel == 1);
+
+    return li;
+}
+
+
+function updateToegewezenStyle(select) {
+    select.style.backgroundColor = TOEGEWEZEN_KLEUREN[select.value] || '';
+    select.style.color = select.value ? '#fff' : '';
+}
+
+
+function setOptioneel(button, label, actief) {
+    button.setAttribute('aria-pressed', actief ? 'true' : 'false');
+    button.classList.toggle('btn-secondary', actief);
+    button.classList.toggle('btn-outline-secondary', !actief);
+    label.classList.toggle('fst-italic', actief);
+    label.classList.toggle('text-muted', actief);
+}
+
+
+// item definitief verwijderen (uit tbl_items)
+async function deleteItem(id, li) {
+    if (!confirm('Dit item definitief verwijderen?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch('API/delete_item.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+        });
+
+        // tweede verdedigingslinie: sessie verlopen
+        if (checkSession(response)) return;
+
+        const result = await response.json();
+
+        if (result.success) {
+            li.remove();
+        } else {
+            alert("Kon item niet verwijderen: " + (result.message || "Onbekende fout"));
+        }
+
+    } catch (error) {
+        console.error("Fout bij verwijderen item:", error);
+        alert("Kon item niet verwijderen. Probeer opnieuw.");
+    }
+}
+
+
+// DOM bouwen MET FETCH API
+// items ophalen uit tbl_items (checkbox, toewijzing en optioneel zitten al op het item zelf)
 async function loadItems() {
     try {
         const response = await fetch('API/get_items.php');
@@ -172,40 +261,16 @@ async function loadItems() {
 
         const data = await response.json();
 
-        const foodList = document.getElementById('foodList');
-        const stuffList = document.getElementById('stuffList');
-
-        foodList.innerHTML = '';
-        stuffList.innerHTML = '';
+        document.querySelectorAll('ul[id^="list_"]').forEach(ul => ul.innerHTML = '');
 
         data.forEach(item => {
 
-            const li = document.createElement('li'); 
-            li.className = 'list-group-item';
+            const list = document.getElementById('list_' + item.categorie);
 
+            // onbekende/verouderde categorie: overslaan
+            if (!list) return;
 
-            const checkbox = document.createElement('input');
-            checkbox.className = 'form-check-input me-2';
-            checkbox.type = 'checkbox';
-            checkbox.name = item.categorie + '[]';
-            checkbox.value = item.id;
-            checkbox.id = item.categorie + '_' + item.id;
-
-            const label = document.createElement('label');
-            label.htmlFor = checkbox.id;
-            label.textContent = item.naam; // veilig door textContent (ipv innerHTML)
-            //label.className = 'mb-0';
-
-            li.appendChild(checkbox);
-            li.appendChild(label);
-
-
-
-            if (item.categorie === 'food') {
-                foodList.appendChild(li);
-            } else {
-                stuffList.appendChild(li);
-            }
+            list.appendChild(buildItemLi(item));
         });
 
     } catch (error) {
@@ -215,176 +280,40 @@ async function loadItems() {
 }
 
 
-// FASE 2: DOM MANIPULEREN
-// (bij selectie van bestaande checklist →) gegevens ophalen uit tbl_checklist_items (checkboxes uit / aan)
-async function loadChecklistItems(id) {
-    try {
-        
-        if (DEBUG) {
-            console.log("Checklist items laden voor ID:", id);
-        }
-
-        const response = await fetch('API/get_checklist_items.php?checklist_id=' + id);
-
-        // tweede verdedigingslinie: sessie verlopen
-        if (checkSession(response)) return;
-
-        const data = await response.json();
-
-        if (DEBUG) {
-            console.log("Checklist items ontvangen:", data);
-        }
-
-        // verwijder custom items van vorige checklist
-        document.querySelectorAll('#foodList li[data-custom], #stuffList li[data-custom]')
-            .forEach(li => li.remove());
-
-        // eerst alles unchecken
-        document.querySelectorAll('#foodList input, #stuffList input')
-            .forEach(cb => cb.checked = false);
-
-        data.forEach(item => {
-
-            const checkboxId = item.categorie + '_' + item.item_id;
-            let checkbox = document.getElementById(checkboxId);
-
-            // custom item nog niet in DOM: <li> toevoegen
-            if (!checkbox) {
-                const list = item.categorie === 'food'
-                    ? document.getElementById('foodList')
-                    : document.getElementById('stuffList');
-
-                const li = document.createElement('li');
-                li.className = 'list-group-item';
-                li.dataset.custom = 'true';
-
-                checkbox = document.createElement('input');
-                checkbox.className = 'form-check-input me-2';
-                checkbox.type = 'checkbox';
-                checkbox.name = item.categorie + '[]';
-                checkbox.value = item.item_id;
-                checkbox.id = checkboxId;
-
-                const label = document.createElement('label');
-                label.htmlFor = checkboxId;
-                label.textContent = item.naam;
-
-                li.appendChild(checkbox);
-                li.appendChild(label);
-                list.appendChild(li);
-            }
-
-            checkbox.checked = item.checked == 1;
-        });
-
-    } catch (error) {
-        console.error("Fout bij laden checklist items:", error);
-        alert("Kon checklist items niet laden.");
-    }
-}
-
-
-// ACTIVE CHECKLIST OPHALEN OF AANMAKEN
-async function ensureChecklistId() {
-    if (checklistId) {
-        return checklistId;
-    }
-
-    try {
-        const response = await fetch('API/get_checklists.php');
-
-        // tweede verdedigingslinie: sessie verlopen
-        if (checkSession(response)) return null;
-
-        const data = await response.json();
-
-        if (Array.isArray(data) && data.length > 0) {
-            checklistId = data[0].id;
-            return checklistId;
-        }
-
-        const createResponse = await fetch('API/create_checklist.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                land: 'Nederland',
-                regio: '',
-                jaar: new Date().getFullYear().toString(),
-                mnWk: ''
-            })
-        });
-
-        // tweede verdedigingslinie: sessie verlopen
-        if (checkSession(createResponse)) return null;
-
-        const result = await createResponse.json();
-
-        if (createResponse.ok && result.id) {
-            checklistId = result.id;
-            return checklistId;
-        }
-
-        throw new Error(result.message || 'Kon geen checklist aanmaken');
-
-    } catch (error) {
-        console.error('Fout bij ophalen van checklist:', error);
-        alert('Kon geen actieve checklist vinden. Probeer opnieuw.');
-        return null;
-    }
-}
-
 // INIT CONTROLLER FLOW
 async function initChecklistPage() {
     await loadItems();
-    const activeChecklistId = await ensureChecklistId();
-    if (activeChecklistId) {
-        await loadChecklistItems(activeChecklistId);
-    }
     initPdfDownload('downloadPDF', 'content', 'Checklist.pdf');
 }
 
 
-
-
-
-
-
-
-
-
-// AANGEVINKTE ITEMS OPHALEN
+// ALLE ITEMS OPSLAAN
 // Functie voor wanneer je klikt op 'Opslaan'
 document.getElementById('update_list').addEventListener('submit', async (event) => {
     event.preventDefault();
 
-    const activeChecklistId = await ensureChecklistId();
-    if (!activeChecklistId) {
-        return;
-    }
+    // alle items ophalen: checked, toewijzing en optioneel
+    const items = [];
 
-    checklistId = activeChecklistId;
+    document.querySelectorAll('ul[id^="list_"] li[data-item-id]').forEach(li => {
 
-    // alle checkboxes ophalen
-    const checkedItems = [];
+        const checkbox = li.querySelector('input[type="checkbox"]');
+        const select = li.querySelector('.toegewezen-select');
+        const optioneelBtn = li.querySelector('.optioneel-toggle');
 
-    document.querySelectorAll('#foodList input, #stuffList input').forEach(cb => {
-        checkedItems.push({
-            item_id: cb.value,
-            checked: cb.checked ? 1 : 0,
-            categorie: cb.name.replace('[]', '')
+        items.push({
+            id: li.dataset.itemId,
+            checked: checkbox.checked ? 1 : 0,
+            toegewezen: select.value || null,
+            optioneel: optioneelBtn.getAttribute('aria-pressed') === 'true' ? 1 : 0
         });
     });
 
-    const payload = {
-        checklist_id: checklistId,
-        items: checkedItems
-    };
-
     try {
-        const response = await fetch('API/save_checklist_items.php', {
+        const response = await fetch('API/save_items.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({ items })
         });
 
         // tweede verdedigingslinie: sessie verlopen
@@ -405,143 +334,67 @@ document.getElementById('update_list').addEventListener('submit', async (event) 
 });
 
 
-// FOOD ITEM TOEVOEGEN
-document.getElementById('button-addon1').addEventListener('click', async () => {
+// ITEM TOEVOEGEN (herbruikbaar voor elke categorie-kaart)
+function initAddItemHandler(button) {
 
-    const input = document.getElementById('food');
-    const naam = input.value.trim(); // trim() validatie
+    const categorie = button.dataset.categorie;
+    const input = document.getElementById('item_' + categorie);
 
-    // Regex: alleen letters, spaties, koppeltekens en apostrofs toestaan
-    const nameRegex = /^[a-zA-ZÀ-ÿ\s\-']+$/;
+    button.addEventListener('click', async () => {
 
-    if (!naam) { // lege input check
-        alert("Voer een item in");
-        return;
-    } 
+        const naam = input.value.trim(); // trim() validatie
 
-    if (!nameRegex.test(naam)) {
-        alert("Alleen letters, spaties, koppeltekens en apostrofs zijn toegestaan");
-        return;
-    } 
+        // Regex: alleen letters, spaties, koppeltekens en apostrofs toestaan
+        const nameRegex = /^[a-zA-ZÀ-ÿ\s\-']+$/;
 
+        if (!naam) { // lege input check
+            alert("Voer een item in");
+            return;
+        }
 
-    const response = await fetch('API/add_item.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            naam: naam,
-            categorie: 'food',
-            checklist_id: checklistId
-        })
+        if (!nameRegex.test(naam)) {
+            alert("Alleen letters, spaties, koppeltekens en apostrofs zijn toegestaan");
+            return;
+        }
+
+        try {
+            const response = await fetch('API/add_item.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ naam: naam, categorie: categorie })
+            });
+
+            // tweede verdedigingslinie: sessie verlopen
+            if (checkSession(response)) return;
+
+            const result = await response.json();
+
+            if (result.success) {
+
+                const list = document.getElementById('list_' + categorie);
+
+                list.appendChild(buildItemLi({
+                    id: result.id,
+                    naam: result.naam,
+                    categorie: result.categorie,
+                    checked: 0,
+                    toegewezen: null,
+                    optioneel: 0
+                }));
+
+                input.value = '';
+            } else {
+                alert("Kon item niet toevoegen: " + (result.message || "Onbekende fout"));
+            }
+
+        } catch (error) {
+            console.error("Fout bij toevoegen item:", error);
+            alert("Kon item niet toevoegen. Probeer opnieuw.");
+        }
     });
+}
 
-    // tweede verdedigingslinie: sessie verlopen
-    if (checkSession(response)) return;
-
-    const result = await response.json();
-
-    if (result.success) {
-
-        const foodList = document.getElementById('foodList');
-
-        const li = document.createElement('li');
-        li.className = 'list-group-item';
-        li.dataset.custom = 'true';
-
-        const id = result.id;
-        const checkboxId = 'food_' + id;
-
-        const checkbox = document.createElement('input');
-        checkbox.className = 'form-check-input me-2';
-        checkbox.type = 'checkbox';
-        checkbox.name = 'food[]';
-        checkbox.value = id;
-        checkbox.id = checkboxId;
-
-        const label = document.createElement('label');
-        label.htmlFor = checkboxId;
-        label.textContent = result.naam;  // Veilig: textContent
-
-        li.appendChild(checkbox);
-        li.appendChild(label);
-        foodList.appendChild(li);
-
-        input.value = '';
-    } else {
-        alert("Kon item niet toevoegen: " + (result.message || "Onbekende fout"));
-    }
-});
-
-
-
-
-
-// STUFF TOEVOEGEN
-document.getElementById('button-addon2').addEventListener('click', async () => {
-
-    const input = document.getElementById('stuff');
-    const naam = input.value.trim(); // trim() validatie
-
-    // Regex: alleen letters, spaties, koppeltekens en apostrofs toestaan
-    const nameRegex = /^[a-zA-ZÀ-ÿ\s\-']+$/;
-
-    if (!naam) { // lege input check
-        alert("Voer een item in");
-        return;
-    } 
-
-    if (!nameRegex.test(naam)) {
-        alert("Alleen letters, spaties, koppeltekens en apostrofs zijn toegestaan");
-        return;
-    } 
-
-
-    const response = await fetch('API/add_item.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            naam: naam,
-            categorie: 'stuff',
-            checklist_id: checklistId
-        })
-    });
-
-    // tweede verdedigingslinie: sessie verlopen
-    if (checkSession(response)) return;
-
-    const result = await response.json();
-
-    if (result.success) {
-
-        const stuffList = document.getElementById('stuffList');
-
-        const li = document.createElement('li');
-        li.className = 'list-group-item';
-        li.dataset.custom = 'true';
-
-        const id = result.id;
-        const checkboxId = 'stuff_' + id;
-
-        const checkbox = document.createElement('input');
-        checkbox.className = 'form-check-input me-2';
-        checkbox.type = 'checkbox';
-        checkbox.name = 'stuff[]';
-        checkbox.value = id;
-        checkbox.id = checkboxId;
-
-        const label = document.createElement('label');
-        label.htmlFor = checkboxId;
-        label.textContent = result.naam;  // Veilig: textContent
-
-        li.appendChild(checkbox);
-        li.appendChild(label);
-        stuffList.appendChild(li);
-
-        input.value = '';
-    } else {
-        alert("Kon item niet toevoegen: " + (result.message || "Onbekende fout"));
-    }
-});
+document.querySelectorAll('[id^="button-addon-"]').forEach(initAddItemHandler);
 
 
 </script>

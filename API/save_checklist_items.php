@@ -1,4 +1,4 @@
-<?php
+, bvb input validatie<?php<?php
 require_once '../dbconnect.php'; // veilige database connectie (start ook sessie)
 require_once 'controlelogin.php'; // login controle
 
@@ -50,8 +50,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // 2. nieuwe items opslaan
-    $sqlInsert = "INSERT INTO tbl_checklist_items (checklist_id, item_id, checked)
-                  VALUES (?, ?, ?)";
+    $sqlInsert = "INSERT INTO tbl_checklist_items (checklist_id, item_id, checked, toegewezen, optioneel)
+                  VALUES (?, ?, ?, ?, ?)";
 
     $stmtInsert = $conn->prepare($sqlInsert);
 
@@ -65,8 +65,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $item_id = (int)$item['item_id'];
         $checked = ((int)$item['checked'] === 1) ? 1 : 0; // beperkt tot 0 of 1
+        $optioneel = ((int)($item['optioneel'] ?? 0) === 1) ? 1 : 0; // beperkt tot 0 of 1
 
-        $stmtInsert->bind_param("iii", $checklist_id, $item_id, $checked);
+        // whitelist: enkel 'kaatje', 'ben' of null toegelaten
+        $toegewezen = $item['toegewezen'] ?? null;
+        if (!in_array($toegewezen, ['kaatje', 'ben'], true)) {
+            $toegewezen = null;
+        }
+
+        $stmtInsert->bind_param("iiisi", $checklist_id, $item_id, $checked, $toegewezen, $optioneel);
 
         if (!$stmtInsert->execute()) {
             http_response_code(500);
