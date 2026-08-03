@@ -31,6 +31,11 @@ require_once 'controlelogin.php';
 [data-bs-toggle="collapse"][aria-expanded="true"] .kaart-chevron {
     transform: rotate(180deg);
 }
+
+.optioneel-toggle:hover {
+    background-color: var(--sagegreen) !important;
+    color: #fff;
+}
 </style>
 
 <?php include 'pwa_head.php'; ?>
@@ -138,6 +143,33 @@ require_once 'controlelogin.php';
 
 </div>
 
+
+<!-- Modal item bewerken / verwijderen -->
+<div class="modal fade" id="itemModal" tabindex="-1">
+    <div class="modal-dialog">
+
+        <div class="modal-content">
+
+            <div class="modal-header bg-alfasage">
+                <h5 class="modal-title text-darksage fw-bold">Item bewerken</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <label class="form-label" for="itemModalNaam">Naam</label>
+                <input class="form-control" type="text" id="itemModalNaam" maxlength="50" pattern="[a-zA-ZÀ-ÿ\s\-']+">
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-dark" id="btnItemOpslaan">Opslaan</button>
+                <button type="button" class="btn btn-outline-danger" id="btnItemVerwijder">Verwijderen</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
 <!-- code client side -->
 
 
@@ -175,7 +207,7 @@ function buildItemLi(item) {
 
     // toewijzing: Kaatje / Ben / niemand
     const select = document.createElement('select');
-    select.className = 'form-select form-select-sm w-auto toegewezen-select';
+    select.className = 'form-select form-select-sm w-auto border-dark toegewezen-select';
     select.setAttribute('aria-label', 'Toegewezen aan');
 
     [['', '–'], ['kaatje', 'Kaatje'], ['ben', 'Ben']].forEach(([waarde, tekst]) => {
@@ -191,26 +223,26 @@ function buildItemLi(item) {
     // optioneel: item is een 'misschien meenemen'
     const optioneelBtn = document.createElement('button');
     optioneelBtn.type = 'button';
-    optioneelBtn.className = 'btn btn-sm btn-outline-secondary optioneel-toggle';
+    optioneelBtn.className = 'btn btn-sm btn-outline-dark optioneel-toggle';
     optioneelBtn.title = 'Optioneel item (misschien meenemen)';
     optioneelBtn.textContent = '?';
     optioneelBtn.addEventListener('click', () => {
         setOptioneel(optioneelBtn, label, optioneelBtn.getAttribute('aria-pressed') !== 'true');
     });
 
-    // item volledig verwijderen
-    const deleteBtn = document.createElement('button');
-    deleteBtn.type = 'button';
-    deleteBtn.className = 'btn btn-sm btn-outline-danger delete-item';
-    deleteBtn.title = 'Item verwijderen';
-    deleteBtn.textContent = '×';
-    deleteBtn.addEventListener('click', () => deleteItem(item.id, li));
+    // meer opties: naam bewerken of item verwijderen (via modal)
+    const menuBtn = document.createElement('button');
+    menuBtn.type = 'button';
+    menuBtn.className = 'btn btn-sm btn-outline-dark item-menu';
+    menuBtn.title = 'Meer opties';
+    menuBtn.textContent = '⋮';
+    menuBtn.addEventListener('click', () => openItemModal(li));
 
     li.appendChild(checkbox);
     li.appendChild(label);
     li.appendChild(select);
     li.appendChild(optioneelBtn);
-    li.appendChild(deleteBtn);
+    li.appendChild(menuBtn);
 
     // initiële stijl toepassen (toewijzing + optioneel)
     updateToegewezenStyle(select);
@@ -235,8 +267,8 @@ function updateToegewezenStyle(select) {
 
 function setOptioneel(button, label, actief) {
     button.setAttribute('aria-pressed', actief ? 'true' : 'false');
-    button.classList.toggle('btn-secondary', actief);
-    button.classList.toggle('btn-outline-secondary', !actief);
+    button.classList.toggle('bg-sagegreen', actief);
+    button.style.color = actief ? '#fff' : '';
     label.classList.toggle('fst-italic', actief);
     label.style.opacity = actief ? '0.3' : '';
 }
@@ -271,6 +303,72 @@ async function deleteItem(id, li) {
         alert("Kon item niet verwijderen. Probeer opnieuw.");
     }
 }
+
+
+// MODAL: item bewerken (naam) of verwijderen
+let itemModalLi = null;
+
+function openItemModal(li) {
+    itemModalLi = li;
+    document.getElementById('itemModalNaam').value = li.querySelector('.item-label').textContent;
+    new bootstrap.Modal(document.getElementById('itemModal')).show();
+}
+
+
+// MODAL: naam opslaan MET FETCH API
+document.getElementById('btnItemOpslaan').addEventListener('click', async () => {
+
+    if (!itemModalLi) return;
+
+    const naam = document.getElementById('itemModalNaam').value.trim(); // trim() validatie
+
+    // Regex: alleen letters, spaties, koppeltekens en apostrofs toestaan
+    const nameRegex = /^[a-zA-ZÀ-ÿ\s\-']+$/;
+
+    if (!naam) { // lege input check
+        alert("Voer een naam in");
+        return;
+    }
+
+    if (!nameRegex.test(naam)) {
+        alert("Alleen letters, spaties, koppeltekens en apostrofs zijn toegestaan");
+        return;
+    }
+
+    try {
+        const response = await fetch('API/update_item.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: itemModalLi.dataset.itemId, naam: naam })
+        });
+
+        // tweede verdedigingslinie: sessie verlopen
+        if (checkSession(response)) return;
+
+        const result = await response.json();
+
+        if (result.success) {
+            itemModalLi.querySelector('.item-label').textContent = result.naam; // Veilig: textContent
+            bootstrap.Modal.getInstance(document.getElementById('itemModal')).hide();
+        } else {
+            alert("Kon item niet hernoemen: " + (result.message || "Onbekende fout"));
+        }
+
+    } catch (error) {
+        console.error("Fout bij hernoemen item:", error);
+        alert("Kon item niet hernoemen. Probeer opnieuw.");
+    }
+});
+
+
+// MODAL: verwijderen (hergebruikt deleteItem, sluit eerst de modal)
+document.getElementById('btnItemVerwijder').addEventListener('click', () => {
+    if (!itemModalLi) return;
+
+    const li = itemModalLi;
+    bootstrap.Modal.getInstance(document.getElementById('itemModal')).hide();
+    deleteItem(li.dataset.itemId, li);
+});
 
 
 // DOM bouwen MET FETCH API
