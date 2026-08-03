@@ -223,6 +223,13 @@ function buildItemLi(item) {
 function updateToegewezenStyle(select) {
     select.style.backgroundColor = TOEGEWEZEN_KLEUREN[select.value] || '';
     select.style.color = select.value ? '#fff' : '';
+
+    // tekst van het item blauw en vetgedrukt maken bij toewijzing aan Ben
+    const label = select.closest('li')?.querySelector('.item-label');
+    if (label) {
+        label.style.color = select.value === 'ben' ? 'var(--blue)' : '';
+        label.style.fontWeight = select.value === 'ben' ? 'bold' : '';
+    }
 }
 
 
@@ -231,7 +238,7 @@ function setOptioneel(button, label, actief) {
     button.classList.toggle('btn-secondary', actief);
     button.classList.toggle('btn-outline-secondary', !actief);
     label.classList.toggle('fst-italic', actief);
-    label.classList.toggle('text-muted', actief);
+    label.style.opacity = actief ? '0.3' : '';
 }
 
 
