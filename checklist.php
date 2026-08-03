@@ -22,6 +22,17 @@ require_once 'controlelogin.php';
 
 <script src="functies.js"></script>
 
+<style>
+.kaart-chevron {
+    font-size: 0.7rem;
+    transition: transform 0.25s ease;
+}
+
+[data-bs-toggle="collapse"][aria-expanded="true"] .kaart-chevron {
+    transform: rotate(180deg);
+}
+</style>
+
 <?php include 'pwa_head.php'; ?>
 </head>
 
@@ -67,22 +78,27 @@ require_once 'controlelogin.php';
 
             <div class="card h-100 shadow-sm">
 
-                <div class="card-header bg-alfasage text-darksage fw-bold">
-                    <?php echo $label; ?>
+                <div class="card-header bg-alfasage text-darksage fw-bold d-flex justify-content-between align-items-center" style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#collapse-<?php echo $slug; ?>" aria-expanded="false" aria-controls="collapse-<?php echo $slug; ?>">
+                    <span><?php echo $label; ?></span>
+                    <span class="kaart-chevron">▼</span>
                 </div>
 
-                <div class="card-body">
+                <div class="collapse" id="collapse-<?php echo $slug; ?>">
 
-                 <ul class="list-group list-group-flush" id="list_<?php echo $slug; ?>"></ul>
+                    <div class="card-body">
 
-                </div>
+                     <ul class="list-group list-group-flush" id="list_<?php echo $slug; ?>"></ul>
 
-                <div class="card-footer">
+                    </div>
 
-                    <!-- input group met button addon -->
-                    <div class="input-group m-1">
-                        <input class="form-control" type="text" id="item_<?php echo $slug; ?>" maxlength="50" placeholder=" Extra item toevoegen aan lijst" aria-label=" toevoegen aan lijst" aria-describedby="button-addon-<?php echo $slug; ?>">
-                        <button class="btn btn-outline-dark" type="button" id="button-addon-<?php echo $slug; ?>" data-categorie="<?php echo $slug; ?>">Toevoegen</button>
+                    <div class="card-footer">
+
+                        <!-- input group met button addon -->
+                        <div class="input-group m-1">
+                            <input class="form-control" type="text" id="item_<?php echo $slug; ?>" maxlength="50" placeholder=" Extra item toevoegen aan lijst" aria-label=" toevoegen aan lijst" aria-describedby="button-addon-<?php echo $slug; ?>">
+                            <button class="btn btn-outline-dark" type="button" id="button-addon-<?php echo $slug; ?>" data-categorie="<?php echo $slug; ?>">Toevoegen</button>
+                        </div>
+
                     </div>
 
                 </div>
