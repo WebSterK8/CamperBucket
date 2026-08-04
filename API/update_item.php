@@ -42,10 +42,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // naam bijwerken
-    $sql = "UPDATE tbl_items SET naam = ? WHERE id = ?";
+    // Input opschonen: beperkt tot 0 of 1
+    $optioneel = ((int) ($data['optioneel'] ?? 0) === 1) ? 1 : 0;
+
+    // Input validatie: whitelist toegewezen (enkel 'kaatje', 'ben' of null toegelaten)
+    $toegewezen = $data['toegewezen'] ?? null;
+    if (!in_array($toegewezen, ['kaatje', 'ben'], true)) {
+        $toegewezen = null;
+    }
+
+    // naam, toewijzing en optioneel bijwerken
+    $sql = "UPDATE tbl_items SET naam = ?, toegewezen = ?, optioneel = ? WHERE id = ?";
     $stmt = $conn->prepare($sql); // Prepared Statements, tegen SQL injectie
-    $stmt->bind_param("si", $naam, $id);
+    $stmt->bind_param("ssii", $naam, $toegewezen, $optioneel, $id);
 
     if ($stmt->execute()) {
         http_response_code(200);

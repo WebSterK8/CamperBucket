@@ -31,11 +31,6 @@ require_once 'controlelogin.php';
 [data-bs-toggle="collapse"][aria-expanded="true"] .kaart-chevron {
     transform: rotate(180deg);
 }
-
-.optioneel-toggle:hover {
-    background-color: var(--sagegreen) !important;
-    color: #fff;
-}
 </style>
 
 <?php include 'pwa_head.php'; ?>
@@ -156,8 +151,22 @@ require_once 'controlelogin.php';
             </div>
 
             <div class="modal-body">
+
                 <label class="form-label" for="itemModalNaam">Naam</label>
-                <input class="form-control" type="text" id="itemModalNaam" maxlength="50" pattern="[a-zA-ZÀ-ÿ\s\-']+">
+                <input class="form-control mb-3" type="text" id="itemModalNaam" maxlength="50" pattern="[a-zA-ZÀ-ÿ\s\-']+">
+
+                <label class="form-label" for="itemModalToegewezen">Toegewezen aan</label>
+                <select class="form-select mb-3" id="itemModalToegewezen">
+                    <option value="">–</option>
+                    <option value="kaatje">Kaatje</option>
+                    <option value="ben">Ben</option>
+                </select>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="itemModalOptioneel">
+                    <label class="form-check-label" for="itemModalOptioneel">Optioneel item (misschien meenemen)</label>
+                </div>
+
             </div>
 
             <div class="modal-footer">
@@ -185,15 +194,17 @@ const TOEGEWEZEN_KLEUREN = { kaatje: 'var(--sagegreen)', ben: 'var(--blue)' };
 document.addEventListener('DOMContentLoaded', initChecklistPage);//voer functie uit wanneer de HTML pagina geladen is
 
 
-// bouwt één <li> op: checkbox (aan/uit vinken) + label + toewijzing + optioneel-toggle + verwijderknop
+// bouwt één <li> op: checkbox (aan/uit vinken) + label + "meer opties"-knopje
 function buildItemLi(item) {
 
     const li = document.createElement('li');
-    li.className = 'list-group-item d-flex align-items-center flex-wrap gap-2';
+    li.className = 'list-group-item d-flex align-items-center gap-2';
     li.dataset.itemId = item.id;
+    li.dataset.toegewezen = item.toegewezen || '';
+    li.dataset.optioneel = item.optioneel == 1 ? '1' : '0';
 
     const checkbox = document.createElement('input');
-    checkbox.className = 'form-check-input';
+    checkbox.className = 'form-check-input flex-shrink-0';
     checkbox.type = 'checkbox';
     checkbox.name = item.categorie + '[]';
     checkbox.value = item.id;
@@ -202,73 +213,38 @@ function buildItemLi(item) {
 
     const label = document.createElement('label');
     label.htmlFor = checkbox.id;
-    label.className = 'flex-grow-1 mb-0 item-label';
+    label.className = 'flex-grow-1 mb-0 item-label text-truncate';
     label.textContent = item.naam; // veilig door textContent (ipv innerHTML)
 
-    // toewijzing: Kaatje / Ben / niemand
-    const select = document.createElement('select');
-    select.className = 'form-select form-select-sm w-auto border-dark toegewezen-select';
-    select.setAttribute('aria-label', 'Toegewezen aan');
-
-    [['', '–'], ['kaatje', 'Kaatje'], ['ben', 'Ben']].forEach(([waarde, tekst]) => {
-        const option = document.createElement('option');
-        option.value = waarde;
-        option.textContent = tekst;
-        select.appendChild(option);
-    });
-
-    select.value = item.toegewezen || '';
-    select.addEventListener('change', () => updateToegewezenStyle(select));
-
-    // optioneel: item is een 'misschien meenemen'
-    const optioneelBtn = document.createElement('button');
-    optioneelBtn.type = 'button';
-    optioneelBtn.className = 'btn btn-sm btn-outline-dark optioneel-toggle';
-    optioneelBtn.title = 'Optioneel item (misschien meenemen)';
-    optioneelBtn.textContent = '?';
-    optioneelBtn.addEventListener('click', () => {
-        setOptioneel(optioneelBtn, label, optioneelBtn.getAttribute('aria-pressed') !== 'true');
-    });
-
-    // meer opties: naam bewerken of item verwijderen (via modal)
+    // meer opties: toewijzen, optioneel, naam bewerken of verwijderen (via modal)
     const menuBtn = document.createElement('button');
     menuBtn.type = 'button';
-    menuBtn.className = 'btn btn-sm btn-outline-dark item-menu';
+    menuBtn.className = 'btn btn-sm btn-outline-dark item-menu flex-shrink-0';
     menuBtn.title = 'Meer opties';
     menuBtn.textContent = '⋮';
     menuBtn.addEventListener('click', () => openItemModal(li));
 
     li.appendChild(checkbox);
     li.appendChild(label);
-    li.appendChild(select);
-    li.appendChild(optioneelBtn);
     li.appendChild(menuBtn);
 
     // initiële stijl toepassen (toewijzing + optioneel)
-    updateToegewezenStyle(select);
-    setOptioneel(optioneelBtn, label, item.optioneel == 1);
+    applyToegewezenStyle(label, item.toegewezen || '');
+    applyOptioneelStyle(label, item.optioneel == 1);
 
     return li;
 }
 
 
-function updateToegewezenStyle(select) {
-    select.style.backgroundColor = TOEGEWEZEN_KLEUREN[select.value] || '';
-    select.style.color = select.value ? '#fff' : '';
-
-    // tekst van het item gekleurd en vetgedrukt maken bij toewijzing aan Kaatje/Ben
-    const label = select.closest('li')?.querySelector('.item-label');
-    if (label) {
-        label.style.color = TOEGEWEZEN_KLEUREN[select.value] || '';
-        label.style.fontWeight = select.value ? 'bold' : '';
-    }
+// tekst van het item gekleurd en vetgedrukt maken bij toewijzing aan Kaatje/Ben
+function applyToegewezenStyle(label, waarde) {
+    label.style.color = TOEGEWEZEN_KLEUREN[waarde] || '';
+    label.style.fontWeight = waarde ? 'bold' : '';
 }
 
 
-function setOptioneel(button, label, actief) {
-    button.setAttribute('aria-pressed', actief ? 'true' : 'false');
-    button.classList.toggle('bg-sagegreen', actief);
-    button.style.color = actief ? '#fff' : '';
+// tekst van het item lichter en cursief maken bij optioneel
+function applyOptioneelStyle(label, actief) {
     label.classList.toggle('fst-italic', actief);
     label.style.opacity = actief ? '0.3' : '';
 }
@@ -305,17 +281,19 @@ async function deleteItem(id, li) {
 }
 
 
-// MODAL: item bewerken (naam) of verwijderen
+// MODAL: item bewerken (naam, toewijzing, optioneel) of verwijderen
 let itemModalLi = null;
 
 function openItemModal(li) {
     itemModalLi = li;
     document.getElementById('itemModalNaam').value = li.querySelector('.item-label').textContent;
+    document.getElementById('itemModalToegewezen').value = li.dataset.toegewezen || '';
+    document.getElementById('itemModalOptioneel').checked = li.dataset.optioneel === '1';
     new bootstrap.Modal(document.getElementById('itemModal')).show();
 }
 
 
-// MODAL: naam opslaan MET FETCH API
+// MODAL: opslaan (naam + toewijzing + optioneel) MET FETCH API
 document.getElementById('btnItemOpslaan').addEventListener('click', async () => {
 
     if (!itemModalLi) return;
@@ -335,11 +313,19 @@ document.getElementById('btnItemOpslaan').addEventListener('click', async () => 
         return;
     }
 
+    const toegewezen = document.getElementById('itemModalToegewezen').value || null;
+    const optioneel = document.getElementById('itemModalOptioneel').checked ? 1 : 0;
+
     try {
         const response = await fetch('API/update_item.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: itemModalLi.dataset.itemId, naam: naam })
+            body: JSON.stringify({
+                id: itemModalLi.dataset.itemId,
+                naam: naam,
+                toegewezen: toegewezen,
+                optioneel: optioneel
+            })
         });
 
         // tweede verdedigingslinie: sessie verlopen
@@ -348,15 +334,24 @@ document.getElementById('btnItemOpslaan').addEventListener('click', async () => 
         const result = await response.json();
 
         if (result.success) {
-            itemModalLi.querySelector('.item-label').textContent = result.naam; // Veilig: textContent
+
+            const label = itemModalLi.querySelector('.item-label');
+            label.textContent = result.naam; // Veilig: textContent
+
+            itemModalLi.dataset.toegewezen = toegewezen || '';
+            itemModalLi.dataset.optioneel = optioneel;
+
+            applyToegewezenStyle(label, toegewezen || '');
+            applyOptioneelStyle(label, optioneel == 1);
+
             bootstrap.Modal.getInstance(document.getElementById('itemModal')).hide();
         } else {
-            alert("Kon item niet hernoemen: " + (result.message || "Onbekende fout"));
+            alert("Kon item niet opslaan: " + (result.message || "Onbekende fout"));
         }
 
     } catch (error) {
-        console.error("Fout bij hernoemen item:", error);
-        alert("Kon item niet hernoemen. Probeer opnieuw.");
+        console.error("Fout bij opslaan item:", error);
+        alert("Kon item niet opslaan. Probeer opnieuw.");
     }
 });
 
@@ -413,20 +408,18 @@ async function initChecklistPage() {
 document.getElementById('update_list').addEventListener('submit', async (event) => {
     event.preventDefault();
 
-    // alle items ophalen: checked, toewijzing en optioneel
+    // checked komt van de checkbox, toewijzing/optioneel staan al opgeslagen (via de modal)
     const items = [];
 
     document.querySelectorAll('ul[id^="list_"] li[data-item-id]').forEach(li => {
 
         const checkbox = li.querySelector('input[type="checkbox"]');
-        const select = li.querySelector('.toegewezen-select');
-        const optioneelBtn = li.querySelector('.optioneel-toggle');
 
         items.push({
             id: li.dataset.itemId,
             checked: checkbox.checked ? 1 : 0,
-            toegewezen: select.value || null,
-            optioneel: optioneelBtn.getAttribute('aria-pressed') === 'true' ? 1 : 0
+            toegewezen: li.dataset.toegewezen || null,
+            optioneel: li.dataset.optioneel === '1' ? 1 : 0
         });
     });
 
