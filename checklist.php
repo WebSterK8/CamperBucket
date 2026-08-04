@@ -54,8 +54,6 @@ require_once 'controlelogin.php';
 
 <div class="container-lg mt-2">
 
- <form id="update_list">
-
     <div class="row g-4 mt-1">
 
         <?php
@@ -111,29 +109,6 @@ require_once 'controlelogin.php';
 
     </div>
 
-    <div class="row mt-4">
-
-       <!-- Formulier opslaan card-->
-        <div class="col-12">
-
-            <div class="card h-100 shadow-sm">
-
-                <div class="card-body">
-
-                 <button type="submit" class="btn btn-outline-dark">Opslaan</button>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-
- </form>
-
 </div>
 
 </div>
@@ -170,7 +145,6 @@ require_once 'controlelogin.php';
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-dark" id="btnItemOpslaan">Opslaan</button>
                 <button type="button" class="btn btn-outline-danger" id="btnItemVerwijder">Verwijderen</button>
             </div>
 
@@ -210,6 +184,7 @@ function buildItemLi(item) {
     checkbox.value = item.id;
     checkbox.id = item.categorie + '_' + item.id;
     checkbox.checked = item.checked == 1;
+    checkbox.addEventListener('change', () => autosaveChecked(li));
 
     const label = document.createElement('label');
     label.htmlFor = checkbox.id;
@@ -293,8 +268,9 @@ function openItemModal(li) {
 }
 
 
-// MODAL: opslaan (naam + toewijzing + optioneel) MET FETCH API
-document.getElementById('btnItemOpslaan').addEventListener('click', async () => {
+// MODAL: AUTOSAVE (naam + toewijzing + optioneel) MET FETCH API
+// naam: bij blur van het veld | toewijzing/optioneel: meteen bij wijziging
+async function saveItemModal() {
 
     if (!itemModalLi) return;
 
@@ -343,8 +319,6 @@ document.getElementById('btnItemOpslaan').addEventListener('click', async () => 
 
             applyToegewezenStyle(label, toegewezen || '');
             applyOptioneelStyle(label, optioneel == 1);
-
-            bootstrap.Modal.getInstance(document.getElementById('itemModal')).hide();
         } else {
             alert("Kon item niet opslaan: " + (result.message || "Onbekende fout"));
         }
@@ -353,7 +327,11 @@ document.getElementById('btnItemOpslaan').addEventListener('click', async () => 
         console.error("Fout bij opslaan item:", error);
         alert("Kon item niet opslaan. Probeer opnieuw.");
     }
-});
+}
+
+document.getElementById('itemModalNaam').addEventListener('blur', saveItemModal);
+document.getElementById('itemModalToegewezen').addEventListener('change', saveItemModal);
+document.getElementById('itemModalOptioneel').addEventListener('change', saveItemModal);
 
 
 // MODAL: verwijderen (hergebruikt deleteItem, sluit eerst de modal)
@@ -403,31 +381,25 @@ async function initChecklistPage() {
 }
 
 
-// ALLE ITEMS OPSLAAN
-// Functie voor wanneer je klikt op 'Opslaan'
-document.getElementById('update_list').addEventListener('submit', async (event) => {
-    event.preventDefault();
+// AUTOSAVE: aangevinkte status van één item meteen opslaan bij het aan/uit vinken
+async function autosaveChecked(li) {
 
-    // checked komt van de checkbox, toewijzing/optioneel staan al opgeslagen (via de modal)
-    const items = [];
+    const checkbox = li.querySelector('input[type="checkbox"]');
 
-    document.querySelectorAll('ul[id^="list_"] li[data-item-id]').forEach(li => {
-
-        const checkbox = li.querySelector('input[type="checkbox"]');
-
-        items.push({
+    const payload = {
+        items: [{
             id: li.dataset.itemId,
             checked: checkbox.checked ? 1 : 0,
             toegewezen: li.dataset.toegewezen || null,
             optioneel: li.dataset.optioneel === '1' ? 1 : 0
-        });
-    });
+        }]
+    };
 
     try {
         const response = await fetch('API/save_items.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ items })
+            body: JSON.stringify(payload)
         });
 
         // tweede verdedigingslinie: sessie verlopen
@@ -438,14 +410,14 @@ document.getElementById('update_list').addEventListener('submit', async (event) 
         if (result.success) {
             if (DEBUG) console.log("Opslaan resultaat:", result);
         } else {
-            alert("Kon checklist niet opslaan: " + (result.error || "Onbekende fout"));
+            alert("Kon wijziging niet opslaan: " + (result.error || "Onbekende fout"));
         }
 
     } catch (error) {
-        console.error("Fout bij opslaan checklist items:", error);
-        alert("Kon items niet opslaan. Probeer opnieuw.");
+        console.error("Fout bij opslaan item:", error);
+        alert("Kon wijziging niet opslaan. Probeer opnieuw.");
     }
-});
+}
 
 
 // ITEM TOEVOEGEN (herbruikbaar voor elke categorie-kaart)
