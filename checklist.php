@@ -145,6 +145,7 @@ require_once 'controlelogin.php';
             </div>
 
             <div class="modal-footer">
+                <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">Sluiten</button>
                 <button type="button" class="btn btn-outline-danger" id="btnItemVerwijder">Verwijderen</button>
             </div>
 
