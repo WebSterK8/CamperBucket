@@ -31,6 +31,30 @@ require_once 'controlelogin.php';
 [data-bs-toggle="collapse"][aria-expanded="true"] .kaart-chevron {
     transform: rotate(180deg);
 }
+
+/* ronde letter-toggles per persoon in de card header (K = Kaatje, B = Ben) */
+.cat-toggle {
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    border: 2px solid;
+    background: transparent;
+    padding: 0;
+    font-size: 0.75rem;
+    font-weight: bold;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.cat-toggle[data-persoon="kaatje"] { border-color: var(--sagegreen); color: var(--sagegreen); }
+.cat-toggle[data-persoon="ben"]    { border-color: var(--blue); color: var(--blue); }
+
+/* afgevinkt: ingekleurde bol met witte letter */
+.cat-toggle.checked[data-persoon="kaatje"] { background: var(--sagegreen); color: #fff; }
+.cat-toggle.checked[data-persoon="ben"]    { background: var(--blue); color: #fff; }
 </style>
 
 <?php include 'pwa_head.php'; ?>
@@ -78,7 +102,11 @@ require_once 'controlelogin.php';
 
                 <div class="card-header bg-alfasage text-darksage fw-bold d-flex justify-content-between align-items-center" style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#collapse-<?php echo $slug; ?>" aria-expanded="false" aria-controls="collapse-<?php echo $slug; ?>">
                     <span><?php echo $label; ?></span>
-                    <span class="kaart-chevron">▼</span>
+                    <span class="d-flex align-items-center gap-2">
+                        <button type="button" class="cat-toggle" data-categorie="<?php echo $slug; ?>" data-persoon="kaatje" aria-pressed="false" title="Kaatje: categorie afgevinkt">K</button>
+                        <button type="button" class="cat-toggle" data-categorie="<?php echo $slug; ?>" data-persoon="ben" aria-pressed="false" title="Ben: categorie afgevinkt">B</button>
+                        <span class="kaart-chevron">▼</span>
+                    </span>
                 </div>
 
                 <div class="collapse" id="collapse-<?php echo $slug; ?>">
@@ -378,8 +406,85 @@ async function loadItems() {
 // INIT CONTROLLER FLOW
 async function initChecklistPage() {
     await loadItems();
+    await loadCategorieStatus();
     initPdfDownload('downloadPDF', 'content', 'Checklist.pdf');
 }
+
+
+// CATEGORIE-STATUS: per categorie handmatig aan/uit vinken wie (Kaatje/Ben) klaar is
+// visuele status van één toggle bijwerken (ingekleurde bol = afgevinkt)
+function setToggleState(button, checked) {
+    button.classList.toggle('checked', checked);
+    button.setAttribute('aria-pressed', checked ? 'true' : 'false');
+}
+
+
+// statussen ophalen uit tbl_categorie_status en de juiste toggles inkleuren
+async function loadCategorieStatus() {
+    try {
+        const response = await fetch('API/get_categorie_status.php');
+
+        // tweede verdedigingslinie: sessie verlopen
+        if (checkSession(response)) return;
+
+        const data = await response.json();
+
+        data.forEach(status => {
+            const button = document.querySelector(
+                '.cat-toggle[data-categorie="' + status.categorie + '"][data-persoon="' + status.persoon + '"]'
+            );
+            if (button) setToggleState(button, status.checked == 1);
+        });
+
+    } catch (error) {
+        console.error("Fout bij laden categorie-status:", error);
+    }
+}
+
+
+// AUTOSAVE: één categorie-toggle meteen opslaan bij aan/uit vinken
+async function saveCategorieStatus(button) {
+
+    const checked = button.classList.contains('checked') ? 1 : 0;
+
+    try {
+        const response = await fetch('API/save_categorie_status.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                categorie: button.dataset.categorie,
+                persoon: button.dataset.persoon,
+                checked: checked
+            })
+        });
+
+        // tweede verdedigingslinie: sessie verlopen
+        if (checkSession(response)) return;
+
+        const result = await response.json();
+
+        if (!result.success) {
+            // bij fout: visuele toggle terugdraaien zodat UI en DB overeenkomen
+            setToggleState(button, checked !== 1);
+            alert("Kon status niet opslaan: " + (result.message || "Onbekende fout"));
+        }
+
+    } catch (error) {
+        console.error("Fout bij opslaan categorie-status:", error);
+        setToggleState(button, checked !== 1);
+        alert("Kon status niet opslaan. Probeer opnieuw.");
+    }
+}
+
+
+// klik op een toggle: niet de card in-/uitklappen, wel status omdraaien + opslaan
+document.querySelectorAll('.cat-toggle').forEach(button => {
+    button.addEventListener('click', (event) => {
+        event.stopPropagation(); // voorkomt collapse-toggle van de card header
+        setToggleState(button, !button.classList.contains('checked'));
+        saveCategorieStatus(button);
+    });
+});
 
 
 // AUTOSAVE: aangevinkte status van één item meteen opslaan bij het aan/uit vinken
