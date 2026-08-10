@@ -137,6 +137,11 @@ require_once 'controlelogin.php';
 
     </div>
 
+    <!-- reset: alle vinkjes uitzetten om de checklist voor een nieuwe reis te hergebruiken -->
+    <div class="text-start mt-4 mb-2">
+        <button type="button" class="btn btn-outline-danger" id="btnResetChecklist">Reset</button>
+    </div>
+
 </div>
 
 </div>
@@ -587,6 +592,39 @@ function initAddItemHandler(button) {
 }
 
 document.querySelectorAll('[id^="button-addon-"]').forEach(initAddItemHandler);
+
+
+// CHECKLIST RESETTEN: alle vinkjes uit voor hergebruik bij een nieuwe reis
+async function resetChecklist() {
+
+    if (!confirm('Alle vinkjes uitzetten om de checklist opnieuw te gebruiken?\n\nToewijzingen en optionele items blijven behouden.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch('API/reset_checklist.php', { method: 'POST' });
+
+        // tweede verdedigingslinie: sessie verlopen
+        if (checkSession(response)) return;
+
+        const result = await response.json();
+
+        if (result.success) {
+            // item-vinkjes leegmaken in beeld
+            document.querySelectorAll('ul[id^="list_"] input[type="checkbox"]').forEach(cb => cb.checked = false);
+            // K/B categorie-toggles leegmaken in beeld
+            document.querySelectorAll('.cat-toggle').forEach(button => setToggleState(button, false));
+        } else {
+            alert("Kon checklist niet resetten: " + (result.message || result.error || "Onbekende fout"));
+        }
+
+    } catch (error) {
+        console.error("Fout bij resetten checklist:", error);
+        alert("Kon checklist niet resetten. Probeer opnieuw.");
+    }
+}
+
+document.getElementById('btnResetChecklist').addEventListener('click', resetChecklist);
 
 
 </script>
