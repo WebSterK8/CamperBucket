@@ -20,18 +20,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $persoon   = trim($data['persoon'] ?? '');
     $checked   = ((int) ($data['checked'] ?? 0) === 1) ? 1 : 0; // beperkt tot 0 of 1
 
-    // Input validatie: whitelist categorie (overeenkomstig add_item.php)
-    $geldigeCategorieen = [
-        'persoonlijke_verzorging',
-        'kledij',
-        'slaapgerief',
-        'kampeergerief',
-        'keuken_huishouden',
-        'eten_drinken',
-        'elektronica_administratie',
-    ];
+    // Input validatie: categorie moet bestaan in tbl_categorie
+    $check = $conn->prepare("SELECT 1 FROM tbl_categorie WHERE slug = ?");
+    $check->bind_param("s", $categorie);
+    $check->execute();
+    $check->store_result();
+    $categorieBestaat = $check->num_rows > 0;
+    $check->close();
 
-    if (!in_array($categorie, $geldigeCategorieen, true)) {
+    if (!$categorieBestaat) {
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Ongeldige categorie.']);
         exit;

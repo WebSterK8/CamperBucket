@@ -51,16 +51,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $toegewezen = null;
     }
 
-    // naam, toewijzing en optioneel bijwerken
-    $sql = "UPDATE tbl_items SET naam = ?, toegewezen = ?, optioneel = ? WHERE id = ?";
-    $stmt = $conn->prepare($sql); // Prepared Statements, tegen SQL injectie
-    $stmt->bind_param("ssii", $naam, $toegewezen, $optioneel, $id);
+    // Optioneel: item verplaatsen naar een andere categorie (enkel als 'categorie' is meegegeven)
+    $categorie = isset($data['categorie']) ? trim($data['categorie']) : '';
+
+    if ($categorie !== '') {
+        // categorie moet bestaan in tbl_categorie
+        $check = $conn->prepare("SELECT 1 FROM tbl_categorie WHERE slug = ?");
+        $check->bind_param("s", $categorie);
+        $check->execute();
+        $check->store_result();
+        $categorieBestaat = $check->num_rows > 0;
+        $check->close();
+
+        if (!$categorieBestaat) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Ongeldige categorie.']); // Veilige JSON output
+            exit;
+        }
+
+        // naam, toewijzing, optioneel én categorie bijwerken
+        $sql = "UPDATE tbl_items SET naam = ?, toegewezen = ?, optioneel = ?, categorie = ? WHERE id = ?";
+        $stmt = $conn->prepare($sql); // Prepared Statements, tegen SQL injectie
+        $stmt->bind_param("ssisi", $naam, $toegewezen, $optioneel, $categorie, $id);
+    } else {
+        // naam, toewijzing en optioneel bijwerken (categorie ongewijzigd)
+        $sql = "UPDATE tbl_items SET naam = ?, toegewezen = ?, optioneel = ? WHERE id = ?";
+        $stmt = $conn->prepare($sql); // Prepared Statements, tegen SQL injectie
+        $stmt->bind_param("ssii", $naam, $toegewezen, $optioneel, $id);
+    }
 
     if ($stmt->execute()) {
         http_response_code(200);
         echo json_encode([
             'success' => true,
-            'naam' => $naam
+            'naam' => $naam,
+            'categorie' => $categorie
         ]); // Veilige JSON output
     } else {
         http_response_code(500);

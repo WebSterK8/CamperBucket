@@ -81,30 +81,29 @@ require_once 'controlelogin.php';
     <div class="row g-4 mt-1">
 
         <?php
-        // categorieën van de checklist: slug => label
-        $categorieen = [
-            'persoonlijke_verzorging'    => 'Persoonlijke verzorging',
-            'kledij'                     => 'Kledij',
-            'slaapgerief'                => 'Slaapgerief',
-            'kampeergerief'              => 'Kampeergerief',
-            'keuken_huishouden'          => 'Keuken &amp; huishouden',
-            'eten_drinken'               => 'Eten en drinken',
-            'elektronica_administratie'  => 'Elektronica &amp; administratie',
-        ];
+        // categorieën van de checklist uit de database (slug => naam), op volgorde van positie
+        $categorieen = [];
+        $catResult = $conn->query("SELECT slug, naam FROM tbl_categorie ORDER BY positie, naam");
+        if ($catResult) {
+            while ($catRow = $catResult->fetch_assoc()) {
+                $categorieen[$catRow['slug']] = $catRow['naam'];
+            }
+        }
         ?>
 
         <?php foreach ($categorieen as $slug => $label): ?>
 
-        <!-- <?php echo $label; ?> card met list group en checkboxes -->
+        <!-- <?php echo htmlspecialchars($label); ?> card met list group en checkboxes -->
         <div class="col-md-6">
 
             <div class="card h-100 shadow-sm">
 
                 <div class="card-header bg-alfasage text-darksage fw-bold d-flex justify-content-between align-items-center" style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#collapse-<?php echo $slug; ?>" aria-expanded="false" aria-controls="collapse-<?php echo $slug; ?>">
-                    <span><?php echo $label; ?></span>
+                    <span class="categorie-naam"><?php echo htmlspecialchars($label); ?></span>
                     <span class="d-flex align-items-center gap-2">
                         <button type="button" class="cat-toggle" data-categorie="<?php echo $slug; ?>" data-persoon="kaatje" aria-pressed="false" title="Kaatje: categorie afgevinkt">K</button>
                         <button type="button" class="cat-toggle" data-categorie="<?php echo $slug; ?>" data-persoon="ben" aria-pressed="false" title="Ben: categorie afgevinkt">B</button>
+                        <button type="button" class="btn btn-sm btn-outline-dark categorie-menu flex-shrink-0" data-slug="<?php echo $slug; ?>" title="Categorie bewerken">⋮</button>
                         <span class="kaart-chevron">▼</span>
                     </span>
                 </div>
@@ -137,6 +136,11 @@ require_once 'controlelogin.php';
 
     </div>
 
+    <!-- nieuwe categorie toevoegen aan de checklist -->
+    <div class="text-start mt-4 mb-2">
+        <button type="button" class="btn btn-outline-dark" id="btnNieuweCategorie">+ Nieuwe categorie</button>
+    </div>
+
     <!-- reset: alle vinkjes uitzetten om de checklist voor een nieuwe reis te hergebruiken -->
     <div class="text-start mt-4 mb-2">
         <button type="button" class="btn btn-outline-danger" id="btnResetChecklist">Reset</button>
@@ -163,6 +167,13 @@ require_once 'controlelogin.php';
                 <label class="form-label" for="itemModalNaam">Naam</label>
                 <input class="form-control mb-3" type="text" id="itemModalNaam" maxlength="50" pattern="[a-zA-ZÀ-ÿ\s\-']+">
 
+                <label class="form-label" for="itemModalCategorie">Categorie</label>
+                <select class="form-select mb-3" id="itemModalCategorie">
+                    <?php foreach ($categorieen as $slug => $label): ?>
+                    <option value="<?php echo htmlspecialchars($slug); ?>"><?php echo htmlspecialchars($label); ?></option>
+                    <?php endforeach; ?>
+                </select>
+
                 <label class="form-label" for="itemModalToegewezen">Toegewezen aan</label>
                 <select class="form-select mb-3" id="itemModalToegewezen">
                     <option value="">–</option>
@@ -180,6 +191,62 @@ require_once 'controlelogin.php';
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">Sluiten</button>
                 <button type="button" class="btn btn-outline-danger" id="btnItemVerwijder">Verwijderen</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal categorie bewerken / verwijderen -->
+<div class="modal fade" id="categorieModal" tabindex="-1">
+    <div class="modal-dialog">
+
+        <div class="modal-content">
+
+            <div class="modal-header bg-alfasage">
+                <h5 class="modal-title text-darksage fw-bold">Categorie bewerken</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <label class="form-label" for="categorieModalNaam">Naam</label>
+                <input class="form-control mb-3" type="text" id="categorieModalNaam" maxlength="50" pattern="[a-zA-ZÀ-ÿ\s\-'&]+">
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">Sluiten</button>
+                <button type="button" class="btn btn-outline-danger" id="btnCategorieVerwijder">Verwijderen</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal nieuwe categorie -->
+<div class="modal fade" id="nieuweCategorieModal" tabindex="-1">
+    <div class="modal-dialog">
+
+        <div class="modal-content">
+
+            <div class="modal-header bg-alfasage">
+                <h5 class="modal-title text-darksage fw-bold">Nieuwe categorie</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <label class="form-label" for="nieuweCategorieNaam">Naam</label>
+                <input class="form-control mb-3" type="text" id="nieuweCategorieNaam" maxlength="50" pattern="[a-zA-ZÀ-ÿ\s\-'&]+" placeholder="Bijv. Fietsspullen">
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">Sluiten</button>
+                <button type="button" class="btn btn-outline-dark" id="btnNieuweCategorieOpslaan">Toevoegen</button>
             </div>
 
         </div>
@@ -208,6 +275,7 @@ function buildItemLi(item) {
     const li = document.createElement('li');
     li.className = 'list-group-item d-flex align-items-center gap-2';
     li.dataset.itemId = item.id;
+    li.dataset.categorie = item.categorie;
     li.dataset.toegewezen = item.toegewezen || '';
     li.dataset.optioneel = item.optioneel == 1 ? '1' : '0';
 
@@ -296,6 +364,7 @@ let itemModalLi = null;
 function openItemModal(li) {
     itemModalLi = li;
     document.getElementById('itemModalNaam').value = li.querySelector('.item-label').textContent;
+    document.getElementById('itemModalCategorie').value = li.dataset.categorie || '';
     document.getElementById('itemModalToegewezen').value = li.dataset.toegewezen || '';
     document.getElementById('itemModalOptioneel').checked = li.dataset.optioneel === '1';
     new bootstrap.Modal(document.getElementById('itemModal')).show();
@@ -325,6 +394,7 @@ async function saveItemModal() {
 
     const toegewezen = document.getElementById('itemModalToegewezen').value || null;
     const optioneel = document.getElementById('itemModalOptioneel').checked ? 1 : 0;
+    const categorie = document.getElementById('itemModalCategorie').value;
 
     try {
         const response = await fetch('API/update_item.php', {
@@ -333,6 +403,7 @@ async function saveItemModal() {
             body: JSON.stringify({
                 id: itemModalLi.dataset.itemId,
                 naam: naam,
+                categorie: categorie,
                 toegewezen: toegewezen,
                 optioneel: optioneel
             })
@@ -353,6 +424,11 @@ async function saveItemModal() {
 
             applyToegewezenStyle(label, toegewezen || '');
             applyOptioneelStyle(label, optioneel == 1);
+
+            // item verplaatst naar een andere categorie: <li> naar de juiste lijst brengen
+            if (categorie && categorie !== itemModalLi.dataset.categorie) {
+                verplaatsItemLi(itemModalLi, categorie);
+            }
         } else {
             alert("Kon item niet opslaan: " + (result.message || "Onbekende fout"));
         }
@@ -363,7 +439,27 @@ async function saveItemModal() {
     }
 }
 
+
+// item-<li> naar de lijst van een andere categorie verplaatsen + interne verwijzingen bijwerken
+function verplaatsItemLi(li, nieuweCategorie) {
+
+    const doelLijst = document.getElementById('list_' + nieuweCategorie);
+    if (!doelLijst) return;
+
+    li.dataset.categorie = nieuweCategorie;
+
+    // checkbox-id/name en label-koppeling meeverhuizen naar de nieuwe categorie
+    const checkbox = li.querySelector('input[type="checkbox"]');
+    const label = li.querySelector('.item-label');
+    checkbox.name = nieuweCategorie + '[]';
+    checkbox.id = nieuweCategorie + '_' + li.dataset.itemId;
+    label.htmlFor = checkbox.id;
+
+    doelLijst.appendChild(li);
+}
+
 document.getElementById('itemModalNaam').addEventListener('blur', saveItemModal);
+document.getElementById('itemModalCategorie').addEventListener('change', saveItemModal);
 document.getElementById('itemModalToegewezen').addEventListener('change', saveItemModal);
 document.getElementById('itemModalOptioneel').addEventListener('change', saveItemModal);
 
@@ -489,6 +585,171 @@ document.querySelectorAll('.cat-toggle').forEach(button => {
         setToggleState(button, !button.classList.contains('checked'));
         saveCategorieStatus(button);
     });
+});
+
+
+// CATEGORIE BEWERKEN: naam wijzigen of categorie verwijderen (via modal)
+// regex voor categorie-naam: letters, spaties, koppeltekens, apostrofs én ampersand
+const CATEGORIE_NAAM_REGEX = /^[a-zA-ZÀ-ÿ\s\-'&]+$/;
+
+let categorieModalSlug = null;   // slug van de categorie die bewerkt wordt
+let categorieModalNaamHuidig = ''; // laatst opgeslagen naam (om overbodige saves te vermijden)
+
+function openCategorieModal(button) {
+    const card = button.closest('.card');
+    categorieModalSlug = button.dataset.slug;
+    categorieModalNaamHuidig = card.querySelector('.categorie-naam').textContent;
+    document.getElementById('categorieModalNaam').value = categorieModalNaamHuidig;
+    new bootstrap.Modal(document.getElementById('categorieModal')).show();
+}
+
+
+// AUTOSAVE categorie-naam (bij blur van het veld), in de stijl van de item-modal
+async function saveCategorieModal() {
+
+    if (!categorieModalSlug) return;
+
+    const naam = document.getElementById('categorieModalNaam').value.trim(); // trim() validatie
+
+    if (!naam) { // lege input check
+        alert("Voer een naam in");
+        return;
+    }
+
+    if (!CATEGORIE_NAAM_REGEX.test(naam)) {
+        alert("Alleen letters, spaties, koppeltekens, apostrofs en & zijn toegestaan");
+        return;
+    }
+
+    if (naam === categorieModalNaamHuidig) return; // niets gewijzigd
+
+    try {
+        const response = await fetch('API/update_categorie.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ slug: categorieModalSlug, naam: naam })
+        });
+
+        // tweede verdedigingslinie: sessie verlopen
+        if (checkSession(response)) return;
+
+        const result = await response.json();
+
+        if (result.success) {
+            categorieModalNaamHuidig = result.naam;
+
+            // headerlabel bijwerken (veilig via textContent)
+            const menuBtn = document.querySelector('.categorie-menu[data-slug="' + categorieModalSlug + '"]');
+            if (menuBtn) menuBtn.closest('.card').querySelector('.categorie-naam').textContent = result.naam;
+
+            // bijhorende optie in de item-modal dropdown bijwerken
+            const optie = document.querySelector('#itemModalCategorie option[value="' + categorieModalSlug + '"]');
+            if (optie) optie.textContent = result.naam;
+        } else {
+            alert("Kon categorie niet opslaan: " + (result.message || "Onbekende fout"));
+        }
+
+    } catch (error) {
+        console.error("Fout bij opslaan categorie:", error);
+        alert("Kon categorie niet opslaan. Probeer opnieuw.");
+    }
+}
+
+document.getElementById('categorieModalNaam').addEventListener('blur', saveCategorieModal);
+
+
+// CATEGORIE VERWIJDEREN (enkel als ze leeg is; backend blokkeert anders)
+document.getElementById('btnCategorieVerwijder').addEventListener('click', async () => {
+
+    if (!categorieModalSlug) return;
+
+    if (!confirm('Deze categorie verwijderen?')) return;
+
+    try {
+        const response = await fetch('API/delete_categorie.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ slug: categorieModalSlug })
+        });
+
+        // tweede verdedigingslinie: sessie verlopen
+        if (checkSession(response)) return;
+
+        const result = await response.json();
+
+        if (result.success) {
+            // kaart uit beeld halen + optie uit de item-modal dropdown
+            const menuBtn = document.querySelector('.categorie-menu[data-slug="' + categorieModalSlug + '"]');
+            if (menuBtn) menuBtn.closest('.col-md-6').remove();
+
+            const optie = document.querySelector('#itemModalCategorie option[value="' + categorieModalSlug + '"]');
+            if (optie) optie.remove();
+
+            bootstrap.Modal.getInstance(document.getElementById('categorieModal')).hide();
+        } else {
+            // o.a. 409: categorie bevat nog items
+            alert(result.message || "Kon categorie niet verwijderen.");
+        }
+
+    } catch (error) {
+        console.error("Fout bij verwijderen categorie:", error);
+        alert("Kon categorie niet verwijderen. Probeer opnieuw.");
+    }
+});
+
+
+// ⋮-knopjes in de card headers koppelen (stopPropagation zodat de card niet in-/uitklapt)
+document.querySelectorAll('.categorie-menu').forEach(button => {
+    button.addEventListener('click', (event) => {
+        event.stopPropagation();
+        openCategorieModal(button);
+    });
+});
+
+
+// NIEUWE CATEGORIE toevoegen
+document.getElementById('btnNieuweCategorie').addEventListener('click', () => {
+    document.getElementById('nieuweCategorieNaam').value = '';
+    new bootstrap.Modal(document.getElementById('nieuweCategorieModal')).show();
+});
+
+document.getElementById('btnNieuweCategorieOpslaan').addEventListener('click', async () => {
+
+    const naam = document.getElementById('nieuweCategorieNaam').value.trim(); // trim() validatie
+
+    if (!naam) { // lege input check
+        alert("Voer een naam in");
+        return;
+    }
+
+    if (!CATEGORIE_NAAM_REGEX.test(naam)) {
+        alert("Alleen letters, spaties, koppeltekens, apostrofs en & zijn toegestaan");
+        return;
+    }
+
+    try {
+        const response = await fetch('API/add_categorie.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ naam: naam })
+        });
+
+        // tweede verdedigingslinie: sessie verlopen
+        if (checkSession(response)) return;
+
+        const result = await response.json();
+
+        if (result.success) {
+            // eenvoudigste, robuuste weg: pagina herladen zodat de nieuwe kaart + dropdown-optie server-side worden opgebouwd
+            location.reload();
+        } else {
+            alert("Kon categorie niet toevoegen: " + (result.message || "Onbekende fout"));
+        }
+
+    } catch (error) {
+        console.error("Fout bij toevoegen categorie:", error);
+        alert("Kon categorie niet toevoegen. Probeer opnieuw.");
+    }
 });
 
 
