@@ -76,9 +76,18 @@ require_once 'controlelogin.php';
 <div id="content"> <!-- content om eventueel als PDF te exporteren-->
 
 
-<div class="container-lg mt-2">
+<div class="container-lg mt-5">
 
-    <div class="row g-4 mt-1">
+    <!-- titel + nieuwe categorie toevoegen, in dezelfde stijl als de BucketList-pagina -->
+    <div class="d-flex justify-content-between align-items-center m-3 m-md-5">
+
+        <h1 style="color: #606f60;">CheckList</h1>
+
+        <button type="button" class="btn btn-outline-dark" id="btnNieuweCategorie">+ Categorie toevoegen</button>
+
+    </div>
+
+    <div class="row g-4">
 
         <?php
         // categorieën van de checklist uit de database (slug => naam), op volgorde van positie
@@ -136,13 +145,8 @@ require_once 'controlelogin.php';
 
     </div>
 
-    <!-- nieuwe categorie toevoegen aan de checklist -->
-    <div class="text-start mt-4 mb-2">
-        <button type="button" class="btn btn-outline-dark" id="btnNieuweCategorie">+ Nieuwe categorie</button>
-    </div>
-
     <!-- reset: alle vinkjes uitzetten om de checklist voor een nieuwe reis te hergebruiken -->
-    <div class="text-start mt-4 mb-2">
+    <div class="text-start mt-4 mb-4">
         <button type="button" class="btn btn-outline-danger" id="btnResetChecklist">Reset</button>
     </div>
 
