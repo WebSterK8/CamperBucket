@@ -32,6 +32,11 @@ require_once 'controlelogin.php';
     transform: rotate(180deg);
 }
 
+/* "+ Categorie toevoegen"-knop krimpt tot breedte van tekst i.p.v. te rekken tot de flex-breedte*/
+#btnNieuweCategorie {
+    width: min-content;
+}
+
 /* ronde letter-toggles per persoon in de card header (K = Kaatje, B = Ben) */
 .cat-toggle {
     width: 1.6rem;
@@ -83,8 +88,8 @@ require_once 'controlelogin.php';
 
         <h1 style="color: #606f60;">CheckList</h1>
 
-        <button type="button" class="btn btn-outline-dark" id="btnNieuweCategorie">+ Categorie toevoegen</button>
-
+        <button type="button" class="btn btn-outline-dark" id="btnNieuweCategorie">+&nbsp;Categorie toevoegen</button>
+        <!--"toevoegen" schuift netjes onder "Categorie" (de vaste spatie houdt "+ Categorie" bijeen)-->
     </div>
 
     <div class="row g-4">
