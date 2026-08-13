@@ -57,9 +57,14 @@ require_once 'controlelogin.php';
 .cat-toggle[data-persoon="kaatje"] { border-color: var(--sagegreen); color: var(--sagegreen); }
 .cat-toggle[data-persoon="ben"]    { border-color: var(--blue); color: var(--blue); }
 
+/* neutrale bol (geen letter) iets kleiner + dunnere rand: een lege ring oogt anders groter
+   dan een ring met een letter, dit compenseert die optische illusie */
+.cat-toggle[data-persoon="geen"]   { border-color: var(--darksage); color: var(--darksage); width: 1.3rem; height: 1.3rem; border-width: 1.5px; }
+
 /* afgevinkt: ingekleurde bol met witte letter */
 .cat-toggle.checked[data-persoon="kaatje"] { background: var(--sagegreen); color: #fff; }
 .cat-toggle.checked[data-persoon="ben"]    { background: var(--blue); color: #fff; }
+.cat-toggle.checked[data-persoon="geen"]   { background: var(--darksage); color: #fff; }
 </style>
 
 <?php include 'pwa_head.php'; ?>
@@ -317,20 +322,8 @@ function buildItemLi(item) {
         groep.appendChild(buildPersoonVinkje(li, item, 'ben'));
         li.appendChild(groep);
     } else {
-        // één generiek vinkje (leeg / Kaatje / Ben)
-        const checkbox = document.createElement('input');
-        checkbox.className = 'form-check-input flex-shrink-0';
-        checkbox.type = 'checkbox';
-        checkbox.name = item.categorie + '[]';
-        checkbox.value = item.id;
-        checkbox.id = item.categorie + '_' + item.id;
-        checkbox.checked = item.checked == 1;
-        checkbox.addEventListener('change', () => {
-            li.dataset.checked = checkbox.checked ? '1' : '0';
-            autosaveChecked(li);
-        });
-        label.htmlFor = checkbox.id;
-        li.appendChild(checkbox);
+        // één rond bolletje; kleur volgt de toewijzing (groen/blauw), of neutraal bij geen
+        li.appendChild(buildItemToggle(li, item));
     }
 
     li.appendChild(label);
@@ -371,11 +364,34 @@ function buildPersoonVinkje(li, item, persoon) {
 }
 
 
-// tekst van het item vetgedrukt maken bij een toewijzing; gekleurd bij Kaatje/Ben,
-// en gewoon de originele kleur (enkel vet) bij 'allebei'
+// bouwt het ene ronde bolletje van een gewoon item (leeg zonder letter, dus geen v-tje);
+// de kleur volgt de toewijzing: groen (Kaatje), blauw (Ben) of neutraal (geen)
+function buildItemToggle(li, item) {
+
+    const persoon = item.toegewezen || 'geen'; // kleurvariant van .cat-toggle
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'cat-toggle flex-shrink-0'; // hergebruikt de ronde header-stijl
+    btn.dataset.persoon = persoon;
+    btn.title = 'Ingepakt';
+    setToggleState(btn, item.checked == 1); // ingekleurde bol = afgevinkt
+
+    btn.addEventListener('click', () => {
+        const nu = !btn.classList.contains('checked');
+        setToggleState(btn, nu);
+        li.dataset.checked = nu ? '1' : '0';
+        autosaveChecked(li);
+    });
+
+    return btn;
+}
+
+
+// Kaatje/Ben: gekleurd én vet. 'allebei' en geen toewijzing: originele kleur, normale dikte
 function applyToegewezenStyle(label, waarde) {
-    label.style.color = TOEGEWEZEN_KLEUREN[waarde] || ''; // 'allebei' zit niet in de map → originele kleur
-    label.style.fontWeight = waarde ? 'bold' : '';
+    label.style.color = TOEGEWEZEN_KLEUREN[waarde] || '';      // 'allebei' zit niet in de map → originele kleur
+    label.style.fontWeight = TOEGEWEZEN_KLEUREN[waarde] ? 'bold' : ''; // enkel vet bij Kaatje/Ben
 }
 
 
@@ -480,8 +496,8 @@ async function saveItemModal() {
 
             itemModalLi.dataset.optioneel = optioneel;
 
-            // aantal vinkjes verandert wanneer 'allebei' aan- of uitgezet wordt → <li> herbouwen
-            if ((oudToegewezen === 'allebei') !== (nieuwToegewezen === 'allebei')) {
+            // toewijzing gewijzigd → <li> herbouwen (aantal bolletjes én bolkleur volgen de toewijzing)
+            if (oudToegewezen !== nieuwToegewezen) {
 
                 const nieuweLi = buildItemLi({
                     id: itemModalLi.dataset.itemId,
@@ -530,17 +546,6 @@ function verplaatsItemLi(li, nieuweCategorie) {
     if (!doelLijst) return;
 
     li.dataset.categorie = nieuweCategorie;
-
-    // enkel bij één generiek vinkje de checkbox-id/name en label-koppeling meeverhuizen
-    // (een 'allebei'-item heeft twee persoonsvinkjes en geen label-koppeling)
-    if (li.dataset.toegewezen !== 'allebei') {
-        const checkbox = li.querySelector('input[type="checkbox"]');
-        const label = li.querySelector('.item-label');
-        checkbox.name = nieuweCategorie + '[]';
-        checkbox.id = nieuweCategorie + '_' + li.dataset.itemId;
-        label.htmlFor = checkbox.id;
-    }
-
     doelLijst.appendChild(li);
 }
 
@@ -958,15 +963,13 @@ async function resetChecklist() {
         const result = await response.json();
 
         if (result.success) {
-            // item-vinkjes leegmaken in beeld
-            document.querySelectorAll('ul[id^="list_"] input[type="checkbox"]').forEach(cb => cb.checked = false);
-            // onthouden statussen op elke <li> ook leegmaken (voorkomt oude waarden bij een volgende save)
+            // onthouden statussen op elke <li> leegmaken (voorkomt oude waarden bij een volgende save)
             document.querySelectorAll('ul[id^="list_"] li').forEach(li => {
                 li.dataset.checked = '0';
                 li.dataset.checkedKaatje = '0';
                 li.dataset.checkedBen = '0';
             });
-            // K/B categorie-toggles leegmaken in beeld
+            // alle ronde toggles leegmaken in beeld: item-bolletjes, K/B-vinkjes én de categorie-toggles
             document.querySelectorAll('.cat-toggle').forEach(button => setToggleState(button, false));
         } else {
             alert("Kon checklist niet resetten: " + (result.message || result.error || "Onbekende fout"));
