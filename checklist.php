@@ -113,18 +113,20 @@ require_once 'controlelogin.php';
             <div class="card h-100 shadow-sm">
 
                 <div class="card-header bg-alfasage text-darksage fw-bold d-flex justify-content-between align-items-center" style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#collapse-<?php echo $slug; ?>" aria-expanded="false" aria-controls="collapse-<?php echo $slug; ?>">
-                    <span class="categorie-naam"><?php echo htmlspecialchars($label); ?></span>
                     <span class="d-flex align-items-center gap-2">
+                        <span class="kaart-chevron">▼</span>
+                        <span class="categorie-naam"><?php echo htmlspecialchars($label); ?></span>
+                    </span>
+                    <span class="d-flex align-items-center gap-3">
                         <button type="button" class="cat-toggle" data-categorie="<?php echo $slug; ?>" data-persoon="kaatje" aria-pressed="false" title="Kaatje: categorie afgevinkt">K</button>
                         <button type="button" class="cat-toggle" data-categorie="<?php echo $slug; ?>" data-persoon="ben" aria-pressed="false" title="Ben: categorie afgevinkt">B</button>
                         <button type="button" class="btn btn-sm btn-outline-dark categorie-menu flex-shrink-0" data-slug="<?php echo $slug; ?>" title="Categorie bewerken">⋮</button>
-                        <span class="kaart-chevron">▼</span>
                     </span>
                 </div>
 
                 <div class="collapse" id="collapse-<?php echo $slug; ?>">
 
-                    <div class="card-body">
+                    <div class="card-body px-0">
 
                      <ul class="list-group list-group-flush" id="list_<?php echo $slug; ?>"></ul>
 
