@@ -6,7 +6,7 @@ header('Content-Type: application/json');
 
 
 // hardcoded querie SELECT - geen gebruikersinput
-$sql = "SELECT id, naam, categorie, checked, toegewezen, optioneel
+$sql = "SELECT id, naam, categorie, checked, checked_kaatje, checked_ben, toegewezen, optioneel
         FROM tbl_items
         ORDER BY categorie, naam";
 

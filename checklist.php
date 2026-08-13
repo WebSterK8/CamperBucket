@@ -190,6 +190,7 @@ require_once 'controlelogin.php';
                     <option value="">–</option>
                     <option value="kaatje">Kaatje</option>
                     <option value="ben">Ben</option>
+                    <option value="allebei">Allebei</option>
                 </select>
 
                 <div class="form-check">
@@ -280,27 +281,23 @@ const TOEGEWEZEN_KLEUREN = { kaatje: 'var(--sagegreen)', ben: 'var(--blue)' };
 document.addEventListener('DOMContentLoaded', initChecklistPage);//voer functie uit wanneer de HTML pagina geladen is
 
 
-// bouwt één <li> op: checkbox (aan/uit vinken) + label + "meer opties"-knopje
+// bouwt één <li> op: één vinkje (of twee bij 'allebei') + label + "meer opties"-knopje
 function buildItemLi(item) {
+
+    const toegewezen = item.toegewezen || '';
 
     const li = document.createElement('li');
     li.className = 'list-group-item d-flex align-items-center gap-2';
     li.dataset.itemId = item.id;
     li.dataset.categorie = item.categorie;
-    li.dataset.toegewezen = item.toegewezen || '';
+    li.dataset.toegewezen = toegewezen;
     li.dataset.optioneel = item.optioneel == 1 ? '1' : '0';
-
-    const checkbox = document.createElement('input');
-    checkbox.className = 'form-check-input flex-shrink-0';
-    checkbox.type = 'checkbox';
-    checkbox.name = item.categorie + '[]';
-    checkbox.value = item.id;
-    checkbox.id = item.categorie + '_' + item.id;
-    checkbox.checked = item.checked == 1;
-    checkbox.addEventListener('change', () => autosaveChecked(li));
+    // vinkstatussen op de <li> bewaren zodat autosave altijd de juiste waarden meestuurt
+    li.dataset.checked = item.checked == 1 ? '1' : '0';
+    li.dataset.checkedKaatje = item.checked_kaatje == 1 ? '1' : '0';
+    li.dataset.checkedBen = item.checked_ben == 1 ? '1' : '0';
 
     const label = document.createElement('label');
-    label.htmlFor = checkbox.id;
     label.className = 'flex-grow-1 mb-0 item-label text-truncate';
     label.textContent = item.naam; // veilig door textContent (ipv innerHTML)
 
@@ -312,21 +309,72 @@ function buildItemLi(item) {
     menuBtn.textContent = '⋮';
     menuBtn.addEventListener('click', () => openItemModal(li));
 
-    li.appendChild(checkbox);
+    if (toegewezen === 'allebei') {
+        // twee vinkjes: ieder vinkt z'n eigen exemplaar af (K = Kaatje, B = Ben)
+        const groep = document.createElement('span');
+        groep.className = 'd-flex align-items-center gap-2 flex-shrink-0';
+        groep.appendChild(buildPersoonVinkje(li, item, 'kaatje'));
+        groep.appendChild(buildPersoonVinkje(li, item, 'ben'));
+        li.appendChild(groep);
+    } else {
+        // één generiek vinkje (leeg / Kaatje / Ben)
+        const checkbox = document.createElement('input');
+        checkbox.className = 'form-check-input flex-shrink-0';
+        checkbox.type = 'checkbox';
+        checkbox.name = item.categorie + '[]';
+        checkbox.value = item.id;
+        checkbox.id = item.categorie + '_' + item.id;
+        checkbox.checked = item.checked == 1;
+        checkbox.addEventListener('change', () => {
+            li.dataset.checked = checkbox.checked ? '1' : '0';
+            autosaveChecked(li);
+        });
+        label.htmlFor = checkbox.id;
+        li.appendChild(checkbox);
+    }
+
     li.appendChild(label);
     li.appendChild(menuBtn);
 
     // initiële stijl toepassen (toewijzing + optioneel)
-    applyToegewezenStyle(label, item.toegewezen || '');
+    applyToegewezenStyle(label, toegewezen);
     applyOptioneelStyle(label, item.optioneel == 1);
 
     return li;
 }
 
 
-// tekst van het item gekleurd en vetgedrukt maken bij toewijzing aan Kaatje/Ben
+// bouwt één persoonsvinkje (K of B) voor een 'allebei'-item als rond toggle-knopje,
+// in dezelfde stijl als de K/B-bolletjes in de card-header (.cat-toggle)
+function buildPersoonVinkje(li, item, persoon) {
+
+    const letter = persoon === 'kaatje' ? 'K' : 'B';
+    const startChecked = (persoon === 'kaatje' ? item.checked_kaatje : item.checked_ben) == 1;
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'cat-toggle flex-shrink-0'; // hergebruikt de ronde header-stijl
+    btn.dataset.persoon = persoon;
+    btn.textContent = letter;
+    btn.title = (persoon === 'kaatje' ? 'Kaatje' : 'Ben') + ' ingepakt';
+    setToggleState(btn, startChecked); // ingekleurde bol = afgevinkt
+
+    btn.addEventListener('click', () => {
+        const nu = !btn.classList.contains('checked');
+        setToggleState(btn, nu);
+        if (persoon === 'kaatje') li.dataset.checkedKaatje = nu ? '1' : '0';
+        else li.dataset.checkedBen = nu ? '1' : '0';
+        autosaveChecked(li);
+    });
+
+    return btn;
+}
+
+
+// tekst van het item vetgedrukt maken bij een toewijzing; gekleurd bij Kaatje/Ben,
+// en gewoon de originele kleur (enkel vet) bij 'allebei'
 function applyToegewezenStyle(label, waarde) {
-    label.style.color = TOEGEWEZEN_KLEUREN[waarde] || '';
+    label.style.color = TOEGEWEZEN_KLEUREN[waarde] || ''; // 'allebei' zit niet in de map → originele kleur
     label.style.fontWeight = waarde ? 'bold' : '';
 }
 
@@ -427,14 +475,38 @@ async function saveItemModal() {
 
         if (result.success) {
 
-            const label = itemModalLi.querySelector('.item-label');
-            label.textContent = result.naam; // Veilig: textContent
+            const oudToegewezen = itemModalLi.dataset.toegewezen || '';
+            const nieuwToegewezen = toegewezen || '';
 
-            itemModalLi.dataset.toegewezen = toegewezen || '';
             itemModalLi.dataset.optioneel = optioneel;
 
-            applyToegewezenStyle(label, toegewezen || '');
-            applyOptioneelStyle(label, optioneel == 1);
+            // aantal vinkjes verandert wanneer 'allebei' aan- of uitgezet wordt → <li> herbouwen
+            if ((oudToegewezen === 'allebei') !== (nieuwToegewezen === 'allebei')) {
+
+                const nieuweLi = buildItemLi({
+                    id: itemModalLi.dataset.itemId,
+                    naam: result.naam,
+                    categorie: itemModalLi.dataset.categorie,
+                    checked: itemModalLi.dataset.checked === '1' ? 1 : 0,
+                    checked_kaatje: itemModalLi.dataset.checkedKaatje === '1' ? 1 : 0,
+                    checked_ben: itemModalLi.dataset.checkedBen === '1' ? 1 : 0,
+                    toegewezen: nieuwToegewezen,
+                    optioneel: optioneel
+                });
+
+                itemModalLi.replaceWith(nieuweLi);
+                itemModalLi = nieuweLi;
+
+            } else {
+
+                const label = itemModalLi.querySelector('.item-label');
+                label.textContent = result.naam; // Veilig: textContent
+
+                itemModalLi.dataset.toegewezen = nieuwToegewezen;
+
+                applyToegewezenStyle(label, nieuwToegewezen);
+                applyOptioneelStyle(label, optioneel == 1);
+            }
 
             // item verplaatst naar een andere categorie: <li> naar de juiste lijst brengen
             if (categorie && categorie !== itemModalLi.dataset.categorie) {
@@ -459,12 +531,15 @@ function verplaatsItemLi(li, nieuweCategorie) {
 
     li.dataset.categorie = nieuweCategorie;
 
-    // checkbox-id/name en label-koppeling meeverhuizen naar de nieuwe categorie
-    const checkbox = li.querySelector('input[type="checkbox"]');
-    const label = li.querySelector('.item-label');
-    checkbox.name = nieuweCategorie + '[]';
-    checkbox.id = nieuweCategorie + '_' + li.dataset.itemId;
-    label.htmlFor = checkbox.id;
+    // enkel bij één generiek vinkje de checkbox-id/name en label-koppeling meeverhuizen
+    // (een 'allebei'-item heeft twee persoonsvinkjes en geen label-koppeling)
+    if (li.dataset.toegewezen !== 'allebei') {
+        const checkbox = li.querySelector('input[type="checkbox"]');
+        const label = li.querySelector('.item-label');
+        checkbox.name = nieuweCategorie + '[]';
+        checkbox.id = nieuweCategorie + '_' + li.dataset.itemId;
+        label.htmlFor = checkbox.id;
+    }
 
     doelLijst.appendChild(li);
 }
@@ -767,12 +842,13 @@ document.getElementById('btnNieuweCategorieOpslaan').addEventListener('click', a
 // AUTOSAVE: aangevinkte status van één item meteen opslaan bij het aan/uit vinken
 async function autosaveChecked(li) {
 
-    const checkbox = li.querySelector('input[type="checkbox"]');
-
+    // vinkstatussen komen van de <li>-dataset (werkt voor één én twee vinkjes)
     const payload = {
         items: [{
             id: li.dataset.itemId,
-            checked: checkbox.checked ? 1 : 0,
+            checked: li.dataset.checked === '1' ? 1 : 0,
+            checked_kaatje: li.dataset.checkedKaatje === '1' ? 1 : 0,
+            checked_ben: li.dataset.checkedBen === '1' ? 1 : 0,
             toegewezen: li.dataset.toegewezen || null,
             optioneel: li.dataset.optioneel === '1' ? 1 : 0
         }]
@@ -884,6 +960,12 @@ async function resetChecklist() {
         if (result.success) {
             // item-vinkjes leegmaken in beeld
             document.querySelectorAll('ul[id^="list_"] input[type="checkbox"]').forEach(cb => cb.checked = false);
+            // onthouden statussen op elke <li> ook leegmaken (voorkomt oude waarden bij een volgende save)
+            document.querySelectorAll('ul[id^="list_"] li').forEach(li => {
+                li.dataset.checked = '0';
+                li.dataset.checkedKaatje = '0';
+                li.dataset.checkedBen = '0';
+            });
             // K/B categorie-toggles leegmaken in beeld
             document.querySelectorAll('.cat-toggle').forEach(button => setToggleState(button, false));
         } else {

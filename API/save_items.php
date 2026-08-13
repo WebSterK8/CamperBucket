@@ -24,8 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // per item: checked, toegewezen en optioneel bijwerken
-    $sql = "UPDATE tbl_items SET checked = ?, toegewezen = ?, optioneel = ? WHERE id = ?";
+    // per item: checked (+ per persoon vinkjes bij 'allebei'), toegewezen en optioneel bijwerken
+    $sql = "UPDATE tbl_items SET checked = ?, checked_kaatje = ?, checked_ben = ?, toegewezen = ?, optioneel = ? WHERE id = ?";
     $stmt = $conn->prepare($sql); // Prepared Statements, tegen SQL injectie
 
     foreach ($items as $item) {
@@ -40,15 +40,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Input opschonen met (int) - altijd een getal
         $id = (int) $item['id'];
         $checked = ((int) ($item['checked'] ?? 0) === 1) ? 1 : 0; // beperkt tot 0 of 1
+        $checkedKaatje = ((int) ($item['checked_kaatje'] ?? 0) === 1) ? 1 : 0; // beperkt tot 0 of 1
+        $checkedBen = ((int) ($item['checked_ben'] ?? 0) === 1) ? 1 : 0; // beperkt tot 0 of 1
         $optioneel = ((int) ($item['optioneel'] ?? 0) === 1) ? 1 : 0; // beperkt tot 0 of 1
 
-        // Input validatie: whitelist toegewezen (enkel 'kaatje', 'ben' of null toegelaten)
+        // Input validatie: whitelist toegewezen (enkel 'kaatje', 'ben', 'allebei' of null toegelaten)
         $toegewezen = $item['toegewezen'] ?? null;
-        if (!in_array($toegewezen, ['kaatje', 'ben'], true)) {
+        if (!in_array($toegewezen, ['kaatje', 'ben', 'allebei'], true)) {
             $toegewezen = null;
         }
 
-        $stmt->bind_param("isii", $checked, $toegewezen, $optioneel, $id);
+        $stmt->bind_param("iiisii", $checked, $checkedKaatje, $checkedBen, $toegewezen, $optioneel, $id);
 
         if (!$stmt->execute()) {
             http_response_code(500);

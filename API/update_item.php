@@ -45,9 +45,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Input opschonen: beperkt tot 0 of 1
     $optioneel = ((int) ($data['optioneel'] ?? 0) === 1) ? 1 : 0;
 
-    // Input validatie: whitelist toegewezen (enkel 'kaatje', 'ben' of null toegelaten)
+    // Input validatie: whitelist toegewezen (enkel 'kaatje', 'ben', 'allebei' of null toegelaten)
     $toegewezen = $data['toegewezen'] ?? null;
-    if (!in_array($toegewezen, ['kaatje', 'ben'], true)) {
+    if (!in_array($toegewezen, ['kaatje', 'ben', 'allebei'], true)) {
         $toegewezen = null;
     }
 
