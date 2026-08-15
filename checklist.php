@@ -125,7 +125,8 @@ require_once 'controlelogin.php';
                     <span class="d-flex align-items-center gap-3">
                         <button type="button" class="cat-toggle" data-categorie="<?php echo $slug; ?>" data-persoon="kaatje" aria-pressed="false" title="Kaatje: categorie afgevinkt">K</button>
                         <button type="button" class="cat-toggle" data-categorie="<?php echo $slug; ?>" data-persoon="ben" aria-pressed="false" title="Ben: categorie afgevinkt">B</button>
-                        <button type="button" class="btn btn-sm btn-outline-dark categorie-menu flex-shrink-0" data-slug="<?php echo $slug; ?>" title="Categorie bewerken">⋮</button>
+                        
+                        <button type="button" class="btn btn-sm categorie-menu flex-shrink-0" data-slug="<?php echo $slug; ?>" title="Categorie bewerken">⋮</button>
                     </span>
                 </div>
 
@@ -309,7 +310,7 @@ function buildItemLi(item) {
     // meer opties: toewijzen, optioneel, naam bewerken of verwijderen (via modal)
     const menuBtn = document.createElement('button');
     menuBtn.type = 'button';
-    menuBtn.className = 'btn btn-sm btn-outline-dark item-menu flex-shrink-0';
+    menuBtn.className = 'btn btn-sm categorie-menu item-menu flex-shrink-0';
     menuBtn.title = 'Meer opties';
     menuBtn.textContent = '⋮';
     menuBtn.addEventListener('click', () => openItemModal(li));

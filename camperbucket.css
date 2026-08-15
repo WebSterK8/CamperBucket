@@ -121,6 +121,36 @@ button:hover {
 
 
 
+/* ⋮-knop categorie-menu: geen rand, dikkere puntjes */
+.categorie-menu {
+    background-color: transparent !important;
+    color: var(--darksage) !important;
+
+    border-radius: 50% !important;
+    border: 0 !important;
+
+    font-weight: bold;
+    font-size: 1.2rem;
+    width: 2rem;
+    height: 2rem;
+
+    padding: 0 !important;
+    padding-bottom: 3px !important;
+
+   
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.categorie-menu:hover {
+    background: var(--sagegreen) !important;
+    color: var(--beige) !important;
+}
+
+
+
 /* TOOLTIPS */
 
 .custom-tooltip {
