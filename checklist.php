@@ -126,8 +126,8 @@ require_once 'controlelogin.php';
 
             <div class="card h-100 shadow-sm">
 
-                <div class="card-header bg-alfasage text-darksage fw-bold d-flex justify-content-between align-items-center" style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#collapse-<?php echo $slug; ?>" aria-expanded="false" aria-controls="collapse-<?php echo $slug; ?>">
-                    <span class="d-flex align-items-center gap-2">
+                <div class="card-header bg-alfasage text-darksage fw-bold d-flex justify-content-between align-items-center">
+                    <span class="d-flex align-items-center gap-2" style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#collapse-<?php echo $slug; ?>" aria-expanded="false" aria-controls="collapse-<?php echo $slug; ?>">
                         <span class="kaart-chevron">▼</span>
                         <span class="categorie-naam"><?php echo htmlspecialchars($label); ?></span>
                     </span>
