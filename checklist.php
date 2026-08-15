@@ -23,6 +23,7 @@ require_once 'controlelogin.php';
 <script src="functies.js"></script>
 
 <style>
+/* pijltje */
 .kaart-chevron {
     font-size: 0.7rem;
     transition: transform 0.25s ease;
@@ -57,13 +58,21 @@ require_once 'controlelogin.php';
 .cat-toggle[data-persoon="kaatje"] { border-color: var(--sagegreen); color: var(--sagegreen); }
 .cat-toggle[data-persoon="ben"]    { border-color: var(--blue); color: var(--blue); }
 
-/* neutrale bol (geen letter) iets kleiner + dunnere rand: een lege ring oogt anders groter
-   dan een ring met een letter, dit compenseert die optische illusie */
-.cat-toggle[data-persoon="geen"]   { border-color: var(--darksage); color: var(--darksage); width: 1.3rem; height: 1.3rem; border-width: 1.5px; }
+.cat-toggle[data-persoon="geen"]   { border-color: var(--darksage); color: var(--darksage); }
+
+/* bol zonder letter (het toewijzingsbolletje per item) iets kleiner + dunnere rand: een lege
+   ring oogt anders groter dan een ring met een letter, dit compenseert die optische illusie */
+.cat-toggle-klein { width: 1.3rem; height: 1.3rem; border-width: 1.5px; }
+
+/* geen hover-effect op de bolletjes (dat komt van de algemene button:hover in camperbucket.css);
+   enkel inkleuren bij klikken, dus bij .checked. de tekstkleur per persoon blijft vanzelf staan,
+   want die regels zijn al specifieker dan button:hover */
+.cat-toggle:hover { background: transparent; }
 
 /* afgevinkt: ingekleurde bol met witte letter */
 .cat-toggle.checked[data-persoon="kaatje"] { background: var(--sagegreen); color: #fff; }
 .cat-toggle.checked[data-persoon="ben"]    { background: var(--blue); color: #fff; }
+
 .cat-toggle.checked[data-persoon="geen"]   { background: var(--darksage); color: #fff; }
 </style>
 
@@ -365,16 +374,20 @@ function buildPersoonVinkje(li, item, persoon) {
 }
 
 
-// bouwt het ene ronde bolletje van een gewoon item (leeg zonder letter, dus geen v-tje);
-// de kleur volgt de toewijzing: groen (Kaatje), blauw (Ben) of neutraal (geen)
+// bouwt een bolletje voor een item; bij toewijzing Kaatje/Ben/allebei staat er een letter
+// bij geen toewijzing blijft de bol leeg en kleiner
+const PERSOON_LETTER = { kaatje: 'K', ben: 'B' };
+
 function buildItemToggle(li, item) {
 
     const persoon = item.toegewezen || 'geen'; // kleurvariant van .cat-toggle
+    const letter = PERSOON_LETTER[persoon] || '';
 
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'cat-toggle flex-shrink-0'; // hergebruikt de ronde header-stijl
+    btn.className = 'cat-toggle flex-shrink-0' + (letter ? '' : ' cat-toggle-klein'); // letter = normale maat, leeg = kleiner
     btn.dataset.persoon = persoon;
+    btn.textContent = letter;
     btn.title = 'Ingepakt';
     setToggleState(btn, item.checked == 1); // ingekleurde bol = afgevinkt
 
