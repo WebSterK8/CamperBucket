@@ -442,6 +442,33 @@ function maakReisLabel(reis) {
 }
 
 
+// datum bouwen uit (mogelijk onvolledige) jaar/maand/dag-velden; bij een einddatum vult
+// een ontbrekende maand/dag aan met het laatste mogelijke moment, zodat de reis niet te vroeg
+// als "voorbij" beschouwd wordt
+function maakDatum(jaar, maand, dag, isEind) {
+    if (!jaar) return null;
+    const m = maand ? maand - 1 : (isEind ? 11 : 0);
+    const d = dag || (isEind ? 31 : 1);
+    return new Date(jaar, m, d);
+}
+
+
+// eerste reis in de (chronologisch gesorteerde) lijst die nog loopt of nog moet komen;
+// zonder match (alle reizen liggen in het verleden): de meest recente reis als terugval
+function kiesStandaardReis(reizen) {
+    const vandaag = new Date();
+    vandaag.setHours(0, 0, 0, 0);
+
+    for (const reis of reizen) {
+        const eind = maakDatum(reis.eind_jaar, reis.eind_maand, reis.eind_dag, true)
+                  || maakDatum(reis.start_jaar, reis.start_maand, reis.start_dag, true);
+        if (eind && eind >= vandaag) return reis.id;
+    }
+
+    return reizen[reizen.length - 1].id;
+}
+
+
 async function loadReizen() {
     try {
         const response = await fetch('API/get_reizen.php');
@@ -467,7 +494,7 @@ async function loadReizen() {
             select.appendChild(optie);
         });
 
-        huidigeReisId = reizenLijst[0].id;
+        huidigeReisId = kiesStandaardReis(reizenLijst);
         select.value = huidigeReisId;
         document.getElementById('btnNieuweLocatie').disabled = false;
 
