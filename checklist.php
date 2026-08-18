@@ -62,7 +62,7 @@ require_once 'controlelogin.php';
 
 /* bol zonder letter (het toewijzingsbolletje per item) iets kleiner + dunnere rand: een lege
    ring oogt anders groter dan een ring met een letter, dit compenseert die optische illusie */
-.cat-toggle-klein { width: 1.3rem; height: 1.3rem; border-width: 1.5px; }
+.cat-toggle-klein { width: 1.5rem; height: 1.5rem; border-width: 1.5px; }
 
 /* geen hover-effect op de bolletjes (dat komt van de algemene button:hover in camperbucket.css);
    enkel inkleuren bij klikken, dus bij .checked. de tekstkleur per persoon blijft vanzelf staan,
