@@ -31,38 +31,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // fotobestand verwijderen 
-    $fotoStmt = $conn->prepare("SELECT foto FROM tbl_reizen WHERE id = ?");
-    $fotoStmt->bind_param("i", $id);
-    $fotoStmt->execute();
-    $fotoRij = $fotoStmt->get_result()->fetch_assoc();
-    $fotoStmt->close();
-
-    if ($fotoRij && !empty($fotoRij['foto']) && strpos($fotoRij['foto'], 'Afbeeldingen/uploads/') === 0) {
-        $bestandsPad = '../' . $fotoRij['foto'];
-        if (file_exists($bestandsPad)) {
-            unlink($bestandsPad);
-        }
-    }
-
-    // gekoppelde locaties opruimen (voorkomt wees-rijen in tbl_locaties)
-    $locatiesDel = $conn->prepare("DELETE FROM tbl_locaties WHERE reis_id = ?");
-    $locatiesDel->bind_param("i", $id);
-    $locatiesDel->execute();
-    $locatiesDel->close();
-
-    // reis verwijderen
-    $sql = "DELETE FROM tbl_reizen WHERE id = ?";
+    // locatie verwijderen
+    $sql = "DELETE FROM tbl_locaties WHERE id = ?";
     $stmt = $conn->prepare($sql); // Prepared Statements
     $stmt->bind_param("i", $id);
 
     if ($stmt->execute()) {
         http_response_code(200);
-        echo json_encode(['message' => 'Reis succesvol verwijderd.']);
+        echo json_encode(['success' => true, 'message' => 'Locatie succesvol verwijderd.']);
     } else {
         http_response_code(500);
         echo json_encode([
-            'message' => 'Fout bij verwijderen reis.',
+            'message' => 'Fout bij verwijderen locatie.',
             'error' => $stmt->error
         ]);
     }

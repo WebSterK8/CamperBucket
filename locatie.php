@@ -21,6 +21,8 @@ require_once 'controlelogin.php';
 <!-- Custom CSS -->
 <link href="custom.css" rel="stylesheet">
 
+<script src="functies.js"></script>
+
 <?php include 'pwa_head.php'; ?>
 </head>
 
@@ -46,12 +48,20 @@ require_once 'controlelogin.php';
   
   <div class="charts mt-4">
 
+    <?php if (false): // Grafiek temperaturen per stad per periode - Tijdelijk verborgen ?>
     <div class="card shadow-sm p-3">
       <?php include 'grafiek_plotly.php'; ?>
     </div>
+    <?php endif; ?>
 
+    <?php if (false): // Campings zoeken - Tijdelijk verborgen ?>
     <div class="card shadow-sm p-3">
       <?php include 'map_leaf_places.php'; ?>
+    </div>
+    <?php endif; ?>
+
+    <div class="card shadow-sm p-3">
+      <?php include 'map_leaf_locaties.php'; ?>
     </div>
 
   </div>
