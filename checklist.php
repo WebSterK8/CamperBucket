@@ -614,6 +614,40 @@ async function initChecklistPage() {
     await loadItems();
     await loadCategorieStatus();
     initPdfDownload('downloadPDF', 'content', 'Checklist.pdf');
+    initLiveUpdates();
+}
+
+
+// REALTIME UPDATES: periodiek verversen/gegevens ophalen, zodat vinkjes die de ander op zijn/haar gsm zet getoond worden
+const POLL_INTERVAL_MS = 4000; // elke 4 seconden
+let modalOpenCount = 0; // niet verversen terwijl er een modal openstaat (anders springt de lijst tijdens bewerken)
+let laatsteLokaleWijziging = 0; // niet verversen vlak na een eigen klik (geeft autosave de tijd om weg te schrijven)
+
+function meldLokaleWijziging() {
+    laatsteLokaleWijziging = Date.now();
+}
+
+async function pollForUpdates() {
+    if (modalOpenCount > 0 || document.hidden) return;
+    if (Date.now() - laatsteLokaleWijziging < 1500) return;
+
+    await loadItems();
+    await loadCategorieStatus();
+}
+
+function initLiveUpdates() {
+    ['itemModal', 'categorieModal', 'nieuweCategorieModal'].forEach(id => {
+        const modalEl = document.getElementById(id);
+        modalEl.addEventListener('show.bs.modal', () => modalOpenCount++);
+        modalEl.addEventListener('hidden.bs.modal', () => modalOpenCount--);
+    });
+
+    setInterval(pollForUpdates, POLL_INTERVAL_MS);
+
+    // meteen verversen zodra het scherm weer actief wordt (bv. na ontgrendelen)
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) pollForUpdates();
+    });
 }
 
 
@@ -650,6 +684,8 @@ async function loadCategorieStatus() {
 
 // AUTOSAVE: één categorie-toggle meteen opslaan bij aan/uit vinken
 async function saveCategorieStatus(button) {
+
+    meldLokaleWijziging();
 
     const checked = button.classList.contains('checked') ? 1 : 0;
 
@@ -862,6 +898,8 @@ document.getElementById('btnNieuweCategorieOpslaan').addEventListener('click', a
 async function autosaveChecked(li) {
 
     // vinkstatussen komen van de <li>-dataset (werkt voor één én twee vinkjes)
+    meldLokaleWijziging();
+
     const payload = {
         items: [{
             id: li.dataset.itemId,
