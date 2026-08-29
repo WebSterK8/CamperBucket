@@ -33,11 +33,6 @@ require_once 'controlelogin.php';
     transform: rotate(180deg);
 }
 
-/* "+ Categorie toevoegen"-knop krimpt tot breedte van tekst i.p.v. te rekken tot de flex-breedte*/
-#btnNieuweCategorie {
-    width: min-content;
-}
-
 /* ronde letter-toggles per persoon in de card header (K = Kaatje, B = Ben) */
 .cat-toggle {
     width: 1.6rem;
@@ -97,13 +92,11 @@ require_once 'controlelogin.php';
 
 <div class="container-lg mt-5">
 
-    <!-- titel + nieuwe categorie toevoegen, in dezelfde stijl als de BucketList-pagina -->
+    <!-- titel, in dezelfde stijl als de BucketList-pagina -->
     <div class="d-flex justify-content-between align-items-center m-3 m-md-5">
 
         <h1 style="color: #606f60;">CheckList</h1>
 
-        <button type="button" class="btn btn-outline-dark" id="btnNieuweCategorie">+&nbsp;Categorie toevoegen</button>
-        <!--"toevoegen" schuift netjes onder "Categorie" (de vaste spatie houdt "+ Categorie" bijeen)-->
     </div>
 
     <div class="row g-4">
@@ -165,6 +158,11 @@ require_once 'controlelogin.php';
 
         <?php endforeach; ?>
 
+    </div>
+
+    <div class="mt-4">
+        <button type="button" class="btn btn-outline-dark" id="btnNieuweCategorie">+&nbsp;Categorie toevoegen</button>
+        <!--"toevoegen" schuift netjes onder "Categorie" (de vaste spatie houdt "+ Categorie" bijeen)-->
     </div>
 
     <!-- reset: alle vinkjes uitzetten om de checklist voor een nieuwe reis te hergebruiken -->
