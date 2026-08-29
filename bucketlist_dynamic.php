@@ -68,16 +68,17 @@ require_once 'controlelogin.php';
 
         <h1 style="color: #606f60;">BucketList</h1>
 
-        <div class="d-flex gap-2">
-            <button class="btn-geschiedenis" id="btnToonVolledigeLijst" style="display:none;" title="" aria-label="">↺</button>
-            <button class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#reizenModal">
-                + Reis toevoegen
-            </button>
-        </div>
+        <button class="btn-geschiedenis" id="btnToonVolledigeLijst" style="display:none;" title="" aria-label="">↺</button>
 
     </div>
 
     <div class="row gx-3 gy-3" id="reizenGrid"></div>
+
+    <div class="mt-4">
+        <button class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#reizenModal">
+            + Reis toevoegen
+        </button>
+    </div>
 
 </section>
 
