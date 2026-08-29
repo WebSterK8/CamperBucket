@@ -149,6 +149,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $foto = !empty($foto) ? $foto : null;
     $foto_alt = !empty($foto_alt) ? $foto_alt : null;
 
+    // oude foto van schijf verwijderen indien vervangen of verwijderd
+    $fotoStmt = $conn->prepare("SELECT foto FROM tbl_reizen WHERE id = ?");
+    $fotoStmt->bind_param("i", $id);
+    $fotoStmt->execute();
+    $fotoRij = $fotoStmt->get_result()->fetch_assoc();
+    $fotoStmt->close();
+
+    if ($fotoRij && !empty($fotoRij['foto']) && $fotoRij['foto'] !== $foto
+        && strpos($fotoRij['foto'], 'Afbeeldingen/uploads/') === 0) {
+        $bestandsPad = '../' . $fotoRij['foto'];
+        if (file_exists($bestandsPad)) {
+            unlink($bestandsPad);
+        }
+    }
+
     $sql =
     "UPDATE tbl_reizen
      SET land=?, beschrijving=?, foto=?, foto_alt=?,

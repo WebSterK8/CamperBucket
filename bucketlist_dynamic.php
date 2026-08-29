@@ -91,10 +91,12 @@ require_once 'controlelogin.php';
                 <label class="form-label" for="reizenFotoBestand">Foto</label>
                 <input class="form-control mb-2" type="file" id="reizenFotoBestand" accept="image/*">
 
-                <img id="fotoPreview" class="img-fluid rounded mb-2" alt="Foto preview" style="display:none; max-height:150px;">
-
                 <label class="form-label" for="reizenFotoAlt">Foto alt-tekst</label>
                 <input class="form-control mb-3" type="text" id="reizenFotoAlt" maxlength="255">
+                
+                <img id="fotoPreview" class="img-fluid rounded mb-2" alt="Foto preview" style="display:none; max-height:150px;">
+                <button type="button" class="btn btn-outline-danger btn-sm mb-2" id="btnFotoVerwijderen" style="display:none;">Foto verwijderen</button>
+
 
                 <div class="row">
                     <div class="col">
@@ -183,7 +185,19 @@ document.getElementById('reizenFotoBestand').addEventListener('change', function
     if (this.files[0]) {
         preview.src = URL.createObjectURL(this.files[0]);
         preview.style.display = 'block';
+        document.getElementById('btnFotoVerwijderen').style.display = 'inline-block';
     }
+});
+
+// FOTO VERWIJDEREN bij klik op knop
+document.getElementById('btnFotoVerwijderen').addEventListener('click', function() {
+    if (!confirm('Ben je zeker dat je deze foto wil verwijderen?')) return;
+    document.getElementById('reizenFotoBestand').value = '';
+    document.getElementById('reizenFotoBestaand').value = '';
+    const preview = document.getElementById('fotoPreview');
+    preview.src = '';
+    preview.style.display = 'none';
+    this.style.display = 'none';
 });
 
 
@@ -318,8 +332,16 @@ function openModal(reis = null) {
     const bestaandFoto = reis ? (reis.foto ?? '') : '';
     document.getElementById('reizenFotoBestaand').value = bestaandFoto;
     const preview = document.getElementById('fotoPreview');
-    if (bestaandFoto) { preview.src = bestaandFoto; preview.style.display = 'block'; }
-    else { preview.src = ''; preview.style.display = 'none'; }
+    const btnFotoVerwijderen = document.getElementById('btnFotoVerwijderen');
+    if (bestaandFoto) {
+        preview.src = bestaandFoto;
+        preview.style.display = 'block';
+        btnFotoVerwijderen.style.display = 'inline-block';
+    } else {
+        preview.src = '';
+        preview.style.display = 'none';
+        btnFotoVerwijderen.style.display = 'none';
+    }
     document.getElementById('startJaar').value = reis ? (reis.start_jaar ?? '') : '';
     document.getElementById('startMaand').value = reis ? (reis.start_maand ?? '') : '';
     document.getElementById('startDag').value = reis ? (reis.start_dag ?? '') : '';
