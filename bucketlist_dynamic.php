@@ -37,6 +37,7 @@ require_once 'controlelogin.php';
     border: none;
     padding: 0;
     font-size: 1.3rem;
+    font-weight: bold;
     line-height: 1;
     color: #606f60;
     transition: transform 0.25s ease;
