@@ -30,6 +30,21 @@ require_once 'controlelogin.php';
 [data-bs-toggle="collapse"][aria-expanded="true"] .kaart-chevron {
     transform: rotate(180deg);
 }
+
+.btn-geschiedenis,
+.btn-geschiedenis:hover {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 1.3rem;
+    line-height: 1;
+    color: #606f60;
+    transition: transform 0.25s ease;
+}
+
+.btn-geschiedenis.actief {
+    transform: rotate(180deg);
+}
 </style>
 
 <?php include 'pwa_head.php'; ?>
@@ -53,10 +68,13 @@ require_once 'controlelogin.php';
 
         <h1 style="color: #606f60;">BucketList</h1>
 
-        <button class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#reizenModal">
-            + Reis toevoegen
-        </button>
-        
+        <div class="d-flex gap-2">
+            <button class="btn-geschiedenis" id="btnToonVolledigeLijst" style="display:none;" title="" aria-label="">↺</button>
+            <button class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#reizenModal">
+                + Reis toevoegen
+            </button>
+        </div>
+
     </div>
 
     <div class="row gx-3 gy-3" id="reizenGrid"></div>
@@ -201,6 +219,9 @@ document.getElementById('btnFotoVerwijderen').addEventListener('click', function
 });
 
 
+let alleReizen = [];
+let toonVolledigeLijst = false;
+
 // REIZEN OPHALEN EN KAARTEN BOUWEN MET FETCH API
 async function loadReizen() {
     try {
@@ -211,17 +232,69 @@ async function loadReizen() {
 
         const data = await response.json();
 
-        const grid = document.getElementById('reizenGrid');
-        grid.innerHTML = '';
-
         // intro-rij weggfilteren, enkel gewone reizen tonen
-        data.filter(r => r.intro == 0).forEach(reis => grid.appendChild(maakKaart(reis)));
+        alleReizen = data.filter(r => r.intro == 0);
+
+        renderReizenGrid();
 
     } catch (error) {
         console.error('Fout bij laden reizen:', error);
         alert('Kon reizen niet laden. Vernieuw de pagina.');
     }
 }
+
+
+function maakDatum(jaar, maand, dag, isEind) {
+    if (!jaar) return null;
+    const m = maand ? maand - 1 : (isEind ? 11 : 0);
+    const d = dag || (isEind ? 31 : 1);
+    return new Date(jaar, m, d);
+}
+
+
+// index van de eerste reis die nog loopt of nog moet komen (lijst is chronologisch gesorteerd);
+// zonder match (alle reizen liggen in het verleden): index van de laatste (meest recente) reis
+function vindStartIndex(reizen) {
+    const vandaag = new Date();
+    vandaag.setHours(0, 0, 0, 0);
+
+    for (let i = 0; i < reizen.length; i++) {
+        const eind = maakDatum(reizen[i].eind_jaar, reizen[i].eind_maand, reizen[i].eind_dag, true)
+                  || maakDatum(reizen[i].start_jaar, reizen[i].start_maand, reizen[i].start_dag, true);
+        if (eind && eind >= vandaag) return i;
+    }
+
+    return Math.max(reizen.length - 1, 0);
+}
+
+
+// KAARTEN OPBOUWEN: standaard vanaf eerstkomende/huidige reis, optioneel volledige lijst
+function renderReizenGrid() {
+    const grid = document.getElementById('reizenGrid');
+    grid.innerHTML = '';
+
+    const startIndex = vindStartIndex(alleReizen);
+    const teTonen = toonVolledigeLijst ? alleReizen : alleReizen.slice(startIndex);
+
+    teTonen.forEach(reis => grid.appendChild(maakKaart(reis)));
+
+    const btnToggle = document.getElementById('btnToonVolledigeLijst');
+    if (alleReizen.length === 0 || startIndex === 0) {
+        btnToggle.style.display = 'none';
+    } else {
+        btnToggle.style.display = 'inline-block';
+        const label = toonVolledigeLijst ? 'Toon aankomende reizen' : 'Toon volledige lijst';
+        btnToggle.title = label;
+        btnToggle.setAttribute('aria-label', label);
+        btnToggle.classList.toggle('actief', toonVolledigeLijst);
+    }
+}
+
+
+document.getElementById('btnToonVolledigeLijst').addEventListener('click', () => {
+    toonVolledigeLijst = !toonVolledigeLijst;
+    renderReizenGrid();
+});
 
 
 // KAART BOUWEN (DOM - veilig via createElement + textContent)
