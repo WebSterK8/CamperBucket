@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Input validatie: lengte + regex (overeenkomstig frontend, zelfde stijl als 'land' bij reizen)
-    if (strlen($naam) > 100 || !preg_match("/^[a-zA-ZÀ-ÿ0-9\s\-',\.]+$/u", $naam)) {
+    if (strlen($naam) > 100 || !preg_match("/^[\p{L}0-9\s\-',.]+$/u", $naam)) {
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Naam: max 100 tekens (letters, cijfers, spaties, koppeltekens, komma\'s of punten).']); // Veilige JSON output
         exit;

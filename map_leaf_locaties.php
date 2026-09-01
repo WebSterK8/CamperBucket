@@ -57,7 +57,7 @@
                 <select class="form-select mb-3" id="locatieCategorie"></select>
 
                 <label class="form-label" for="locatieNaam">Naam *</label>
-                <input class="form-control mb-3" type="text" id="locatieNaam" maxlength="100" pattern="[a-zA-ZÀ-ÿ0-9\s\-',\.]+" required>
+                <input class="form-control mb-3" type="text" id="locatieNaam" maxlength="100" pattern="[\p{L}0-9\s\-',.]+" required>
 
                 <label class="form-label" for="locatieBeschrijving">Beschrijving / opmerkingen</label>
                 <textarea class="form-control mb-3" id="locatieBeschrijving" maxlength="1000" rows="3"></textarea>
@@ -99,7 +99,7 @@
             <div class="modal-body">
 
                 <label class="form-label" for="locatieCategorieModalNaam">Naam</label>
-                <input class="form-control mb-3" type="text" id="locatieCategorieModalNaam" maxlength="50" pattern="[a-zA-ZÀ-ÿ\s\-'&]+">
+                <input class="form-control mb-3" type="text" id="locatieCategorieModalNaam" maxlength="50" pattern="[\p{L}\s\-'&]+">
 
             </div>
 
@@ -127,7 +127,7 @@
             <div class="modal-body">
 
                 <label class="form-label" for="nieuweLocatieCategorieNaam">Naam</label>
-                <input class="form-control mb-3" type="text" id="nieuweLocatieCategorieNaam" maxlength="50" pattern="[a-zA-ZÀ-ÿ\s\-'&]+" placeholder="Bijv. Uitzichtpunt">
+                <input class="form-control mb-3" type="text" id="nieuweLocatieCategorieNaam" maxlength="50" pattern="[\p{L}\s\-'&]+" placeholder="Bijv. Uitzichtpunt">
 
             </div>
 
@@ -358,7 +358,7 @@ async function saveLocatieCategorieModal() {
         return;
     }
 
-    if (!/^[a-zA-ZÀ-ÿ\s\-'&]+$/.test(naam)) {
+    if (!/^[\p{L}\s\-'&]+$/u.test(naam)) {
         alert("Alleen letters, spaties, koppeltekens, apostrofs en & zijn toegestaan");
         return;
     }
@@ -439,7 +439,7 @@ document.getElementById('btnNieuweLocatieCategorieOpslaan').addEventListener('cl
         return;
     }
 
-    if (!/^[a-zA-ZÀ-ÿ\s\-'&]+$/.test(naam)) {
+    if (!/^[\p{L}\s\-'&]+$/u.test(naam)) {
         alert("Alleen letters, spaties, koppeltekens, apostrofs en & zijn toegestaan");
         return;
     }
@@ -931,7 +931,7 @@ document.getElementById('btnLocatieOpslaan').addEventListener('click', async () 
 
     if (!naam) { alert('Naam is verplicht.'); return; }
 
-    if (!/^[a-zA-ZÀ-ÿ0-9\s\-',\.]+$/.test(naam)) {
+    if (!/^[\p{L}0-9\s\-',.]+$/u.test(naam)) {
         alert("Naam: enkel letters, cijfers, spaties, koppeltekens, komma's of punten.");
         return;
     }

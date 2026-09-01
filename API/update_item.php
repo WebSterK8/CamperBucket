@@ -36,9 +36,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Input validatie: lengte + regex (overeenkomstig frontend)
-    if (strlen($naam) > 50 || !preg_match("/^[a-zA-ZÀ-ÿ\s\-']+$/", $naam)) {
+    if (strlen($naam) > 50 || !preg_match("/^[a-zA-ZÀ-ÿ\s\-'&+\/()]+$/u", $naam)) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Naam: max 50 letters, spaties, koppeltekens of apostrofs.']); // Veilige JSON output
+        echo json_encode(['success' => false, 'message' => 'Naam: max 50 letters, spaties, koppeltekens, apostrofs, &, +, / of ().']); // Veilige JSON output
         exit;
     }
 

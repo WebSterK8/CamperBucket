@@ -189,7 +189,7 @@ require_once 'controlelogin.php';
             <div class="modal-body">
 
                 <label class="form-label" for="itemModalNaam">Naam</label>
-                <input class="form-control mb-3" type="text" id="itemModalNaam" maxlength="50" pattern="[a-zA-ZÀ-ÿ\s\-']+">
+                <input class="form-control mb-3" type="text" id="itemModalNaam" maxlength="50" pattern="[a-zA-ZÀ-ÿ\s\-'&+/()]+">
 
                 <label class="form-label" for="itemModalCategorie">Categorie</label>
                 <select class="form-select mb-3" id="itemModalCategorie">
@@ -237,7 +237,7 @@ require_once 'controlelogin.php';
             <div class="modal-body">
 
                 <label class="form-label" for="categorieModalNaam">Naam</label>
-                <input class="form-control mb-3" type="text" id="categorieModalNaam" maxlength="50" pattern="[a-zA-ZÀ-ÿ\s\-'&]+">
+                <input class="form-control mb-3" type="text" id="categorieModalNaam" maxlength="50" pattern="[a-zA-ZÀ-ÿ\s\-'&+/()]+">
 
             </div>
 
@@ -265,7 +265,7 @@ require_once 'controlelogin.php';
             <div class="modal-body">
 
                 <label class="form-label" for="nieuweCategorieNaam">Naam</label>
-                <input class="form-control mb-3" type="text" id="nieuweCategorieNaam" maxlength="50" pattern="[a-zA-ZÀ-ÿ\s\-'&]+" placeholder="Bijv. Fietsspullen">
+                <input class="form-control mb-3" type="text" id="nieuweCategorieNaam" maxlength="50" pattern="[a-zA-ZÀ-ÿ\s\-'&+/()]+" placeholder="Bijv. Fietsspullen">
 
             </div>
 
@@ -467,7 +467,7 @@ async function saveItemModal() {
     const naam = document.getElementById('itemModalNaam').value.trim(); // trim() validatie
 
     // Regex: alleen letters, spaties, koppeltekens en apostrofs toestaan
-    const nameRegex = /^[a-zA-ZÀ-ÿ\s\-']+$/;
+    const nameRegex = /^[a-zA-ZÀ-ÿ\s\-'&+\/()]+$/;
 
     if (!naam) { // lege input check
         alert("Voer een naam in");
@@ -729,7 +729,7 @@ document.querySelectorAll('.cat-toggle').forEach(button => {
 
 // CATEGORIE BEWERKEN: naam wijzigen of categorie verwijderen (via modal)
 // regex voor categorie-naam: letters, spaties, koppeltekens, apostrofs én ampersand
-const CATEGORIE_NAAM_REGEX = /^[a-zA-ZÀ-ÿ\s\-'&]+$/;
+const CATEGORIE_NAAM_REGEX = /^[a-zA-ZÀ-ÿ\s\-'&+\/()]+$/;
 
 let categorieModalSlug = null;   // slug van de categorie die bewerkt wordt
 let categorieModalNaamHuidig = ''; // laatst opgeslagen naam (om overbodige saves te vermijden)
@@ -945,7 +945,7 @@ function initAddItemHandler(button) {
         const naam = input.value.trim(); // trim() validatie
 
         // Regex: alleen letters, spaties, koppeltekens en apostrofs toestaan
-        const nameRegex = /^[a-zA-ZÀ-ÿ\s\-']+$/;
+        const nameRegex = /^[a-zA-ZÀ-ÿ\s\-'&+\/()]+$/;
 
         if (!naam) { // lege input check
             alert("Voer een item in");
