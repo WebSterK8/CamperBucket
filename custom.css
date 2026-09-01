@@ -316,6 +316,17 @@ button:hover {
 }
 
 
+/* ster-knop om een locatie als favoriet te (de)markeren, map_leaf_locaties.php */
+.locatie-favoriet-btn {
+    border: none !important;
+    background-color: transparent !important;
+    padding: 0 !important;
+    line-height: 1;
+    font-size: 1.15rem;
+    color: var(--darksage) !important;
+}
+
+
 /* extra css search button kaart */
 button#searchBtn {
     display: inline-block;

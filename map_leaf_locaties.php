@@ -162,7 +162,10 @@ let locatieModalOpen = false;  // bepaalt of een kaartklik het open formulier bi
 // Kaart instellen (Leaflet)
 // =========================
 
-const mapLocaties = L.map("mapLocaties").setView([51.05, 3.73], 9); // België
+const STANDAARD_KAART_CENTER = [51.05, 3.73]; // België (Gent) - terugvalpositie
+const STANDAARD_KAART_ZOOM = 9;
+
+const mapLocaties = L.map("mapLocaties").setView(STANDAARD_KAART_CENTER, STANDAARD_KAART_ZOOM);
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
@@ -551,6 +554,7 @@ async function loadLocaties() {
         });
 
         renderLocatieLijst(locaties);
+        positioneerKaart(locaties);
 
     } catch (error) {
         console.error("Fout bij laden locaties:", error);
@@ -559,14 +563,101 @@ async function loadLocaties() {
 }
 
 
+// kaart positioneren: rond de opgeslagen locaties, anders op de bestemming van de reis, anders de standaardweergave
+async function positioneerKaart(locaties) {
+
+    if (locaties.length > 0) {
+        const bounds = L.latLngBounds(locaties.map(locatie => [locatie.lat, locatie.lon]));
+        mapLocaties.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+        return;
+    }
+
+    const reis = reizenLijst.find(r => String(r.id) === String(huidigeReisId));
+
+    if (reis && reis.land) {
+        const positie = await geocodeBestemming(reis.land);
+        if (positie) {
+            mapLocaties.setView([positie.lat, positie.lon], 8);
+            return;
+        }
+    }
+
+    mapLocaties.setView(STANDAARD_KAART_CENTER, STANDAARD_KAART_ZOOM);
+}
+
+
+// bestemming (reis.land, vrije tekst) omzetten naar coördinaten via Nominatim (OpenStreetMap)
+async function geocodeBestemming(land) {
+    try {
+        const url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(land);
+        const response = await fetch(url, { headers: { 'Accept-Language': 'nl' } });
+        const resultaten = await response.json();
+
+        if (resultaten.length === 0) return null;
+
+        return { lat: parseFloat(resultaten[0].lat), lon: parseFloat(resultaten[0].lon) };
+
+    } catch (error) {
+        console.error('Fout bij geocoding van reisbestemming:', error);
+        return null;
+    }
+}
+
+
+// favoriet-status opslaan via de API en de kaart/lijst herladen
+async function zetLocatieFavoriet(id, favoriet) {
+    try {
+        const response = await fetch('API/toggle_locatie_favoriet.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: id, favoriet: favoriet })
+        });
+
+        if (checkSession(response)) return;
+
+        const result = await response.json();
+
+        if (result.success) {
+            loadLocaties();
+        } else {
+            alert('Kon favoriet niet aanpassen: ' + (result.message || 'Onbekende fout'));
+        }
+
+    } catch (error) {
+        console.error('Fout bij aanpassen favoriet:', error);
+        alert('Kon favoriet niet aanpassen. Probeer opnieuw.');
+    }
+}
+
+
+// ster-knop om een locatie als favoriet te (de)markeren, gedeeld door popup en lijstweergave
+function maakFavorietKnop(locatie) {
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'locatie-favoriet-btn' + (locatie.favoriet ? ' is-favoriet' : '');
+    btn.textContent = locatie.favoriet ? '★' : '☆';
+    btn.title = locatie.favoriet ? 'Favoriet verwijderen' : 'Markeren als favoriet';
+    btn.addEventListener('click', () => zetLocatieFavoriet(locatie.id, !locatie.favoriet));
+
+    return btn;
+}
+
+
 // gedeelde inhoud (naam, categorie, link) voor zowel de kaart-popup als de lijstweergave
 function maakLocatieDetails(locatie) {
 
     const wrapper = document.createElement('div');
 
+    const titelRij = document.createElement('div');
+    titelRij.className = 'd-flex align-items-center gap-2';
+
     const titel = document.createElement('b');
     titel.textContent = locatie.naam;
-    wrapper.appendChild(titel);
+    titelRij.appendChild(titel);
+    titelRij.appendChild(maakFavorietKnop(locatie));
+
+    wrapper.appendChild(titelRij);
 
     const categorieNaam = categorieen.find(c => c.slug === locatie.categorie);
     const catP = document.createElement('div');
