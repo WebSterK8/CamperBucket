@@ -494,7 +494,10 @@ async function loadReizen() {
             select.appendChild(optie);
         });
 
-        huidigeReisId = kiesStandaardReis(reizenLijst);
+        const reisIdUitUrl = new URLSearchParams(window.location.search).get('reis_id');
+        const geldigeReisId = reisIdUitUrl && reizenLijst.some(r => String(r.id) === reisIdUitUrl) ? reisIdUitUrl : null;
+
+        huidigeReisId = geldigeReisId || kiesStandaardReis(reizenLijst);
         select.value = huidigeReisId;
         document.getElementById('btnNieuweLocatie').disabled = false;
 

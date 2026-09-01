@@ -372,6 +372,12 @@ function maakKaart(reis) {
     const footer = document.createElement('div');
     footer.className = 'card-footer d-flex justify-content-end gap-2';
 
+    const btnLocaties = document.createElement('a');
+    btnLocaties.className = 'btn btn-outline-dark btn-sm';
+    btnLocaties.textContent = 'Locaties';
+    btnLocaties.href = 'locatie.php?reis_id=' + encodeURIComponent(reis.id);
+    btnLocaties.addEventListener('click', (e) => e.stopPropagation());
+
     const btnBewerk = document.createElement('button');
     btnBewerk.className = 'btn btn-outline-dark btn-sm';
     btnBewerk.textContent = 'Bewerken';
@@ -382,6 +388,7 @@ function maakKaart(reis) {
     btnVerwijder.textContent = 'Verwijderen';
     btnVerwijder.addEventListener('click', (e) => { e.stopPropagation(); verwijderReis(reis.id); });
 
+    footer.appendChild(btnLocaties);
     footer.appendChild(btnBewerk);
     footer.appendChild(btnVerwijder);
 
