@@ -151,6 +151,10 @@ const LOCATIE_KLEUREN = ['#7a8f7a', '#669999', '#c98a4b', '#9b6b9e', '#4b7bac', 
 let categorieen = [];          // [{slug, naam, positie}], op volgorde van positie
 let categorieKleur = {};       // slug -> hexkleur
 
+let alleLocaties = [];               // laatst opgehaalde (ongefilterde) locaties voor de huidige reis
+let actieveCategorieen = new Set();  // slugs die momenteel getoond worden (filter op de legenda-chips)
+let toonEnkelFavorieten = false;     // filter: enkel favorieten tonen binnen de actieve categorieën
+
 let reizenLijst = [];          // [{id, land, ...}], voor de reis-dropdown in het locatie-formulier
 let huidigeReisId = null;
 let locatieMarkers = [];       // huidige markers op de kaart
@@ -200,6 +204,9 @@ async function loadCategorieen() {
         categorieen.forEach((cat, index) => {
             categorieKleur[cat.slug] = LOCATIE_KLEUREN[index % LOCATIE_KLEUREN.length];
         });
+
+        // nieuwe categorieën staan standaard aan in de filter; eerder uitgezette blijven uit
+        categorieen.forEach(cat => actieveCategorieen.add(cat.slug));
 
         vulCategorieSelect();
         bouwLegenda();
@@ -255,7 +262,7 @@ document.getElementById('nieuweLocatieCategorieModal').addEventListener('hidden.
 });
 
 
-// legenda met kleurbolletje + naam + bewerk-knopje per categorie
+// legenda met kleurbolletje + naam + bewerk-knopje per categorie; chips zijn tegelijk de filter-knoppen
 function bouwLegenda() {
     const legenda = document.getElementById('locatieCategorieLegenda');
     const btnNieuw = document.getElementById('btnNieuweLocatieCategorie');
@@ -264,7 +271,18 @@ function bouwLegenda() {
 
     categorieen.forEach(cat => {
         const chip = document.createElement('span');
-        chip.className = 'locatie-legenda-item d-flex align-items-center gap-2';
+        chip.className = 'locatie-legenda-item locatie-filter-chip d-flex align-items-center gap-2';
+        chip.title = 'Klik om deze categorie te tonen/verbergen';
+        if (!actieveCategorieen.has(cat.slug)) chip.classList.add('is-inactief');
+        chip.addEventListener('click', () => {
+            if (actieveCategorieen.has(cat.slug)) {
+                actieveCategorieen.delete(cat.slug);
+            } else {
+                actieveCategorieen.add(cat.slug);
+            }
+            bouwLegenda();
+            renderGefilterdeLocaties();
+        });
 
         const bol = document.createElement('span');
         bol.className = 'locatie-marker-dot d-inline-block';
@@ -279,7 +297,10 @@ function bouwLegenda() {
         bewerkBtn.className = 'btn btn-sm categorie-menu';
         bewerkBtn.title = 'Categorie bewerken';
         bewerkBtn.textContent = '⋮';
-        bewerkBtn.addEventListener('click', () => openLocatieCategorieModal(cat.slug, cat.naam));
+        bewerkBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openLocatieCategorieModal(cat.slug, cat.naam);
+        });
 
         chip.appendChild(bol);
         chip.appendChild(label);
@@ -287,6 +308,30 @@ function bouwLegenda() {
 
         legenda.insertBefore(chip, btnNieuw);
     });
+
+    // aparte filter-chip voor favorieten: onafhankelijk van de categorieën, werkt als extra AND-voorwaarde
+    const favorietChip = document.createElement('span');
+    favorietChip.className = 'locatie-legenda-item locatie-filter-chip d-flex align-items-center gap-2';
+    favorietChip.title = 'Klik om enkel favorieten te tonen';
+    if (!toonEnkelFavorieten) favorietChip.classList.add('is-inactief');
+    favorietChip.addEventListener('click', () => {
+        toonEnkelFavorieten = !toonEnkelFavorieten;
+        bouwLegenda();
+        renderGefilterdeLocaties();
+    });
+
+    const ster = document.createElement('span');
+    ster.className = 'locatie-favoriet-btn';
+    ster.textContent = '★';
+
+    const favorietLabel = document.createElement('span');
+    favorietLabel.className = 'small';
+    favorietLabel.textContent = 'Favorieten';
+
+    favorietChip.appendChild(ster);
+    favorietChip.appendChild(favorietLabel);
+
+    legenda.insertBefore(favorietChip, btnNieuw);
 }
 
 
@@ -535,31 +580,46 @@ function vulReisSelect() {
 
 async function loadLocaties() {
 
-    locatieMarkers.forEach(marker => mapLocaties.removeLayer(marker));
-    locatieMarkers = [];
-
-    if (!huidigeReisId) return;
+    if (!huidigeReisId) {
+        alleLocaties = [];
+        renderGefilterdeLocaties();
+        return;
+    }
 
     try {
         const response = await fetch('API/get_locaties.php?reis_id=' + encodeURIComponent(huidigeReisId));
         if (checkSession(response)) return;
 
-        const locaties = await response.json();
+        alleLocaties = await response.json();
 
-        locaties.forEach(locatie => {
-            const kleur = categorieKleur[locatie.categorie] || LOCATIE_KLEUREN[0];
-            const marker = L.marker([locatie.lat, locatie.lon], { icon: maakLocatieIcon(kleur) }).addTo(mapLocaties);
-            marker.bindPopup(maakPopupContent(locatie));
-            locatieMarkers.push(marker);
-        });
-
-        renderLocatieLijst(locaties);
-        positioneerKaart(locaties);
+        positioneerKaart(alleLocaties);
+        renderGefilterdeLocaties();
 
     } catch (error) {
         console.error("Fout bij laden locaties:", error);
         alert("Kon locaties niet laden. Vernieuw de pagina.");
     }
+}
+
+
+// bouwt markers + lijstweergave op basis van alleLocaties en de actieve categorie/favorieten-filters
+function renderGefilterdeLocaties() {
+
+    locatieMarkers.forEach(marker => mapLocaties.removeLayer(marker));
+    locatieMarkers = [];
+
+    const gefilterd = alleLocaties.filter(locatie =>
+        actieveCategorieen.has(locatie.categorie) && (!toonEnkelFavorieten || locatie.favoriet)
+    );
+
+    gefilterd.forEach(locatie => {
+        const kleur = categorieKleur[locatie.categorie] || LOCATIE_KLEUREN[0];
+        const marker = L.marker([locatie.lat, locatie.lon], { icon: maakLocatieIcon(kleur) }).addTo(mapLocaties);
+        marker.bindPopup(maakPopupContent(locatie));
+        locatieMarkers.push(marker);
+    });
+
+    renderLocatieLijst(gefilterd);
 }
 
 

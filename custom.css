@@ -327,6 +327,17 @@ button:hover {
 }
 
 
+/* legenda-chips als filter-knoppen: uitgezette categorie/favorieten-filter is gedimd, map_leaf_locaties.php */
+.locatie-filter-chip {
+    cursor: pointer;
+    user-select: none;
+}
+
+.locatie-filter-chip.is-inactief {
+    opacity: 0.4;
+}
+
+
 /* extra css search button kaart */
 button#searchBtn {
     display: inline-block;
