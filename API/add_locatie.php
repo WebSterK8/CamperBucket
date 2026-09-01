@@ -41,6 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Input opschonen met trim()
     $naam = trim($data['naam'] ?? '');
+    $beschrijving = trim($data['beschrijving'] ?? '');
     $categorie = trim($data['categorie'] ?? '');
     $link = trim($data['link'] ?? '');
 
@@ -57,6 +58,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode(['success' => false, 'message' => 'Naam: max 100 tekens (letters, cijfers, spaties, koppeltekens, komma\'s of punten).']);
         exit;
     }
+
+    // Input validatie: beschrijving optioneel, max lengte
+    if (strlen($beschrijving) > 1000) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Beschrijving: max 1000 tekens.']);
+        exit;
+    }
+    $beschrijving = $beschrijving === '' ? null : $beschrijving;
 
     // Input validatie: categorie moet bestaan in tbl_locatie_categorie
     $check = $conn->prepare("SELECT 1 FROM tbl_locatie_categorie WHERE slug = ?");
@@ -99,9 +108,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $link = null;
     }
 
-    $sql = "INSERT INTO tbl_locaties (reis_id, naam, categorie, lat, lon, link) VALUES (?, ?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO tbl_locaties (reis_id, naam, beschrijving, categorie, lat, lon, link) VALUES (?, ?, ?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($sql); // Prepared Statements, tegen SQL injectie
-    $stmt->bind_param("issdds", $reisId, $naam, $categorie, $lat, $lon, $link);
+    $stmt->bind_param("isssdds", $reisId, $naam, $beschrijving, $categorie, $lat, $lon, $link);
 
     if ($stmt->execute()) {
         $id = $conn->insert_id;
@@ -111,6 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'id' => $id,
             'reis_id' => $reisId,
             'naam' => $naam,
+            'beschrijving' => $beschrijving,
             'categorie' => $categorie,
             'lat' => $lat,
             'lon' => $lon,

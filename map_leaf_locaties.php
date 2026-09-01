@@ -59,6 +59,9 @@
                 <label class="form-label" for="locatieNaam">Naam *</label>
                 <input class="form-control mb-3" type="text" id="locatieNaam" maxlength="100" pattern="[a-zA-ZÀ-ÿ0-9\s\-',\.]+" required>
 
+                <label class="form-label" for="locatieBeschrijving">Beschrijving / opmerkingen</label>
+                <textarea class="form-control mb-3" id="locatieBeschrijving" maxlength="1000" rows="3"></textarea>
+
                 <div class="row">
                     <div class="col">
                         <label class="form-label" for="locatieLat">Breedtegraad (lat) *</label>
@@ -693,6 +696,7 @@ function openLocatieModal(locatie = null) {
     document.getElementById('locatieModalReis').value = locatie ? locatie.reis_id : huidigeReisId;
 
     document.getElementById('locatieNaam').value = locatie ? locatie.naam : '';
+    document.getElementById('locatieBeschrijving').value = locatie ? (locatie.beschrijving || '') : '';
     document.getElementById('locatieLat').value = locatie ? locatie.lat : '';
     document.getElementById('locatieLon').value = locatie ? locatie.lon : '';
     document.getElementById('locatieLink').value = locatie ? (locatie.link || '') : '';
@@ -752,6 +756,7 @@ document.getElementById('btnLocatieOpslaan').addEventListener('click', async () 
 
     const reisId = document.getElementById('locatieModalReis').value;
     const naam = document.getElementById('locatieNaam').value.trim();
+    const beschrijving = document.getElementById('locatieBeschrijving').value.trim();
     const categorie = document.getElementById('locatieCategorie').value;
     const lat = document.getElementById('locatieLat').value.trim();
     const lon = document.getElementById('locatieLon').value.trim();
@@ -773,6 +778,7 @@ document.getElementById('btnLocatieOpslaan').addEventListener('click', async () 
     const payload = {
         reis_id: reisId,
         naam: naam,
+        beschrijving: beschrijving,
         categorie: categorie,
         lat: parseFloat(lat),
         lon: parseFloat(lon),

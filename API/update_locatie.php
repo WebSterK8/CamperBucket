@@ -27,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Input opschonen met trim()
     $naam = trim($data['naam'] ?? '');
+    $beschrijving = trim($data['beschrijving'] ?? '');
     $categorie = trim($data['categorie'] ?? '');
     $link = trim($data['link'] ?? '');
 
@@ -43,6 +44,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode(['success' => false, 'message' => 'Naam: max 100 tekens (letters, cijfers, spaties, koppeltekens, komma\'s of punten).']); // Veilige JSON output
         exit;
     }
+
+    // Input validatie: beschrijving optioneel, max lengte
+    if (strlen($beschrijving) > 1000) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Beschrijving: max 1000 tekens.']); // Veilige JSON output
+        exit;
+    }
+    $beschrijving = $beschrijving === '' ? null : $beschrijving;
 
     // Input validatie: categorie moet bestaan in tbl_locatie_categorie
     $check = $conn->prepare("SELECT 1 FROM tbl_locatie_categorie WHERE slug = ?");
@@ -85,15 +94,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $link = null;
     }
 
-    $sql = "UPDATE tbl_locaties SET naam = ?, categorie = ?, lat = ?, lon = ?, link = ? WHERE id = ?";
+    $sql = "UPDATE tbl_locaties SET naam = ?, beschrijving = ?, categorie = ?, lat = ?, lon = ?, link = ? WHERE id = ?";
     $stmt = $conn->prepare($sql); // Prepared Statements, tegen SQL injectie
-    $stmt->bind_param("ssddsi", $naam, $categorie, $lat, $lon, $link, $id);
+    $stmt->bind_param("sssddsi", $naam, $beschrijving, $categorie, $lat, $lon, $link, $id);
 
     if ($stmt->execute()) {
         http_response_code(200);
         echo json_encode([
             'success' => true,
             'naam' => $naam,
+            'beschrijving' => $beschrijving,
             'categorie' => $categorie,
             'lat' => $lat,
             'lon' => $lon,
