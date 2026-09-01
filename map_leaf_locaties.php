@@ -62,16 +62,12 @@
                 <label class="form-label" for="locatieBeschrijving">Beschrijving / opmerkingen</label>
                 <textarea class="form-control mb-3" id="locatieBeschrijving" maxlength="1000" rows="3"></textarea>
 
-                <div class="row">
-                    <div class="col">
-                        <label class="form-label" for="locatieLat">Breedtegraad (lat) *</label>
-                        <input class="form-control mb-3" type="number" step="any" min="-90" max="90" id="locatieLat" required>
-                    </div>
-                    <div class="col">
-                        <label class="form-label" for="locatieLon">Lengtegraad (lon) *</label>
-                        <input class="form-control mb-3" type="number" step="any" min="-180" max="180" id="locatieLon" required>
-                    </div>
-                </div>
+                <label class="form-label" for="locatieCoords">Coördinaten (lat, lon) *</label>
+                <input class="form-control mb-3" type="text" id="locatieCoords" maxlength="60"
+                       pattern="^-?\d{1,3}(\.\d+)?\s*,\s*-?\d{1,3}(\.\d+)?$"
+                       placeholder="bv. 50.850340, 4.351710" required>
+                <input type="hidden" id="locatieLat">
+                <input type="hidden" id="locatieLon">
 
                 <label class="form-label" for="locatieLink">Link (waar gevonden?)</label>
                 <input class="form-control mb-2" type="url" id="locatieLink" maxlength="500" placeholder="https://...">
@@ -697,8 +693,7 @@ function openLocatieModal(locatie = null) {
 
     document.getElementById('locatieNaam').value = locatie ? locatie.naam : '';
     document.getElementById('locatieBeschrijving').value = locatie ? (locatie.beschrijving || '') : '';
-    document.getElementById('locatieLat').value = locatie ? locatie.lat : '';
-    document.getElementById('locatieLon').value = locatie ? locatie.lon : '';
+    zetLocatieCoords(locatie ? locatie.lat : '', locatie ? locatie.lon : '');
     document.getElementById('locatieLink').value = locatie ? (locatie.link || '') : '';
     document.getElementById('btnLocatieVerwijder').style.display = locatie ? 'inline-block' : 'none';
 
@@ -715,6 +710,29 @@ function openLocatieModal(locatie = null) {
     }
 
     new bootstrap.Modal(document.getElementById('locatieModal')).show();
+}
+
+
+// vult het gecombineerde coördinaten-veld (Google Maps-stijl "lat, lon") + verborgen lat/lon velden
+function zetLocatieCoords(lat, lon) {
+    document.getElementById('locatieLat').value = lat;
+    document.getElementById('locatieLon').value = lon;
+    document.getElementById('locatieCoords').value = (lat === '' || lon === '') ? '' : `${lat}, ${lon}`;
+}
+
+// leest en valideert het coördinaten-veld; geeft {lat, lon} terug of null bij een ongeldig formaat
+const COORDS_REGEX = /^(-?\d{1,3}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)$/;
+
+function leesLocatieCoords() {
+    const raw = document.getElementById('locatieCoords').value.trim();
+    const match = raw.match(COORDS_REGEX);
+    if (!match) return null;
+
+    const lat = parseFloat(match[1]);
+    const lon = parseFloat(match[2]);
+    if (lat < -90 || lat > 90 || lon < -180 || lon > 180) return null;
+
+    return { lat, lon };
 }
 
 
@@ -742,12 +760,10 @@ mapLocaties.on('click', function(e) {
     plaatsTempMarker(lat, lon);
 
     if (locatieModalOpen) {
-        document.getElementById('locatieLat').value = lat.toFixed(6);
-        document.getElementById('locatieLon').value = lon.toFixed(6);
+        zetLocatieCoords(lat.toFixed(6), lon.toFixed(6));
     } else {
         openLocatieModal();
-        document.getElementById('locatieLat').value = lat.toFixed(6);
-        document.getElementById('locatieLon').value = lon.toFixed(6);
+        zetLocatieCoords(lat.toFixed(6), lon.toFixed(6));
     }
 });
 
@@ -758,8 +774,6 @@ document.getElementById('btnLocatieOpslaan').addEventListener('click', async () 
     const naam = document.getElementById('locatieNaam').value.trim();
     const beschrijving = document.getElementById('locatieBeschrijving').value.trim();
     const categorie = document.getElementById('locatieCategorie').value;
-    const lat = document.getElementById('locatieLat').value.trim();
-    const lon = document.getElementById('locatieLon').value.trim();
     const link = document.getElementById('locatieLink').value.trim();
 
     if (!reisId) { alert('Kies een reis.'); return; }
@@ -773,15 +787,19 @@ document.getElementById('btnLocatieOpslaan').addEventListener('click', async () 
 
     if (!categorie || categorie === '__nieuw__') { alert('Kies een categorie.'); return; }
 
-    if (lat === '' || lon === '') { alert('Klik op de kaart of vul de coördinaten manueel in.'); return; }
+    const coords = leesLocatieCoords();
+    if (!coords) {
+        alert('Coördinaten: klik op de kaart of plak een geldige "lat, lon"-waarde (bv. gekopieerd uit Google Maps).');
+        return;
+    }
 
     const payload = {
         reis_id: reisId,
         naam: naam,
         beschrijving: beschrijving,
         categorie: categorie,
-        lat: parseFloat(lat),
-        lon: parseFloat(lon),
+        lat: coords.lat,
+        lon: coords.lon,
         link: link
     };
 
