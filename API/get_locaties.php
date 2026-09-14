@@ -14,7 +14,7 @@ if (empty($_GET['reis_id']) || !is_numeric($_GET['reis_id'])) {
 // Input opschonen met (int) - altijd een getal
 $reisId = (int) $_GET['reis_id'];
 
-$sql = "SELECT id, reis_id, naam, beschrijving, categorie, lat, lon, link, favoriet
+$sql = "SELECT id, reis_id, naam, beschrijving, categorie, lat, lon, link, foto, favoriet
         FROM tbl_locaties
         WHERE reis_id = ?
         ORDER BY favoriet DESC, id DESC";

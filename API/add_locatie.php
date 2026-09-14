@@ -6,24 +6,21 @@ header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $input = file_get_contents('php://input');
-    $data = json_decode($input, true);
-
-    if (!$data) {
+    if (empty($_POST)) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Ongeldige JSON-gegevens.']); // Veilige JSON output
+        echo json_encode(['success' => false, 'message' => 'Ongeldige gegevens.']); // Veilige JSON output
         exit;
     }
 
     // Input validatie: verplicht + numeriek
-    if (empty($data['reis_id']) || !is_numeric($data['reis_id'])) {
+    if (empty($_POST['reis_id']) || !is_numeric($_POST['reis_id'])) {
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Ongeldige reis.']);
         exit;
     }
 
     // Input opschonen met (int) - altijd een getal
-    $reisId = (int) $data['reis_id'];
+    $reisId = (int) $_POST['reis_id'];
 
     // reis moet bestaan
     $check = $conn->prepare("SELECT 1 FROM tbl_reizen WHERE id = ?");
@@ -40,10 +37,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Input opschonen met trim()
-    $naam = trim($data['naam'] ?? '');
-    $beschrijving = trim($data['beschrijving'] ?? '');
-    $categorie = trim($data['categorie'] ?? '');
-    $link = trim($data['link'] ?? '');
+    $naam = trim($_POST['naam'] ?? '');
+    $beschrijving = trim($_POST['beschrijving'] ?? '');
+    $categorie = trim($_POST['categorie'] ?? '');
+    $link = trim($_POST['link'] ?? '');
 
     // Input validatie: verplichte velden
     if (empty($naam) || empty($categorie)) {
@@ -82,14 +79,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Input validatie: lat/lon verplicht en numeriek binnen geldig bereik
-    if (!isset($data['lat']) || !is_numeric($data['lat']) || !isset($data['lon']) || !is_numeric($data['lon'])) {
+    if (!isset($_POST['lat']) || !is_numeric($_POST['lat']) || !isset($_POST['lon']) || !is_numeric($_POST['lon'])) {
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Ongeldige coördinaten.']);
         exit;
     }
 
-    $lat = (float) $data['lat'];
-    $lon = (float) $data['lon'];
+    $lat = (float) $_POST['lat'];
+    $lon = (float) $_POST['lon'];
 
     if ($lat < -90 || $lat > 90 || $lon < -180 || $lon > 180) {
         http_response_code(400);
@@ -108,9 +105,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $link = null;
     }
 
-    $sql = "INSERT INTO tbl_locaties (reis_id, naam, beschrijving, categorie, lat, lon, link) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    // Foto: nieuw bestand uploaden of bestaand pad bewaren
+    $foto = null;
+
+    if (!empty($_FILES['foto']['name']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
+        $toegestaneTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = finfo_file($finfo, $_FILES['foto']['tmp_name']);
+        finfo_close($finfo);
+
+        if (!in_array($mimeType, $toegestaneTypes)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Alleen jpg, png, gif of webp toegestaan.']);
+            exit;
+        }
+        if ($_FILES['foto']['size'] > 5 * 1024 * 1024) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Foto mag maximaal 5 MB zijn.']);
+            exit;
+        }
+
+        $ext = strtolower(pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
+        $bestandsnaam = uniqid('locatie_') . '.' . $ext;
+        $uploadPad = '../Afbeeldingen/uploads/' . $bestandsnaam;
+
+        if (!move_uploaded_file($_FILES['foto']['tmp_name'], $uploadPad)) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Foto kon niet worden opgeslagen.']);
+            exit;
+        }
+
+        $foto = 'Afbeeldingen/uploads/' . $bestandsnaam;
+
+    } elseif (!empty($_POST['foto_bestaand'])) {
+        $foto = trim($_POST['foto_bestaand']);
+    }
+
+    if ($foto !== null && strlen($foto) > 500) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Foto: max 500 tekens.']);
+        exit;
+    }
+
+    $sql = "INSERT INTO tbl_locaties (reis_id, naam, beschrijving, categorie, lat, lon, link, foto) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($sql); // Prepared Statements, tegen SQL injectie
-    $stmt->bind_param("isssdds", $reisId, $naam, $beschrijving, $categorie, $lat, $lon, $link);
+    $stmt->bind_param("isssddss", $reisId, $naam, $beschrijving, $categorie, $lat, $lon, $link, $foto);
 
     if ($stmt->execute()) {
         $id = $conn->insert_id;
@@ -124,7 +163,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'categorie' => $categorie,
             'lat' => $lat,
             'lon' => $lon,
-            'link' => $link
+            'link' => $link,
+            'foto' => $foto
         ]);
     } else {
         http_response_code(500);

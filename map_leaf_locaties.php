@@ -62,6 +62,14 @@
                 <label class="form-label" for="locatieBeschrijving">Beschrijving / opmerkingen</label>
                 <textarea class="form-control mb-3" id="locatieBeschrijving" maxlength="1000" rows="3"></textarea>
 
+                <input type="hidden" id="locatieFotoBestaand">
+
+                <label class="form-label" for="locatieFotoBestand">Foto</label>
+                <input class="form-control mb-2" type="file" id="locatieFotoBestand" accept="image/*">
+
+                <img id="locatieFotoPreview" class="img-fluid rounded mb-2" alt="Foto preview" style="display:none; max-height:150px;">
+                <button type="button" class="btn btn-outline-danger btn-sm mb-2" id="btnLocatieFotoVerwijderen" style="display:none;">Foto verwijderen</button>
+
                 <label class="form-label" for="locatieCoords">Coördinaten (lat, lon) *</label>
                 <input class="form-control mb-3" type="text" id="locatieCoords" maxlength="60"
                        pattern="^-?\d{1,3}(\.\d+)?\s*,\s*-?\d{1,3}(\.\d+)?$"
@@ -70,7 +78,7 @@
                 <input type="hidden" id="locatieLon">
 
                 <label class="form-label" for="locatieLink">Link (waar gevonden?)</label>
-                <input class="form-control mb-2" type="url" id="locatieLink" maxlength="500" placeholder="https://...">
+                <input class="form-control mb-3" type="url" id="locatieLink" maxlength="500" placeholder="https://...">
 
             </div>
 
@@ -719,6 +727,15 @@ function maakLocatieDetails(locatie) {
 
     wrapper.appendChild(titelRij);
 
+    if (locatie.foto) {
+        const foto = document.createElement('img');
+        foto.src = locatie.foto;
+        foto.alt = locatie.naam;
+        foto.className = 'img-fluid rounded mt-1 mb-1';
+        foto.style.maxHeight = '120px';
+        wrapper.appendChild(foto);
+    }
+
     const categorieNaam = categorieen.find(c => c.slug === locatie.categorie);
     const catP = document.createElement('div');
     catP.className = 'small text-muted';
@@ -848,6 +865,21 @@ function openLocatieModal(locatie = null) {
     document.getElementById('locatieLink').value = locatie ? (locatie.link || '') : '';
     document.getElementById('btnLocatieVerwijder').style.display = locatie ? 'inline-block' : 'none';
 
+    document.getElementById('locatieFotoBestand').value = '';
+    const bestaandeFoto = locatie ? (locatie.foto || '') : '';
+    document.getElementById('locatieFotoBestaand').value = bestaandeFoto;
+    const fotoPreview = document.getElementById('locatieFotoPreview');
+    const btnFotoVerwijderen = document.getElementById('btnLocatieFotoVerwijderen');
+    if (bestaandeFoto) {
+        fotoPreview.src = bestaandeFoto;
+        fotoPreview.style.display = 'block';
+        btnFotoVerwijderen.style.display = 'inline-block';
+    } else {
+        fotoPreview.src = '';
+        fotoPreview.style.display = 'none';
+        btnFotoVerwijderen.style.display = 'none';
+    }
+
     vulCategorieSelect();
     if (locatie) document.getElementById('locatieCategorie').value = locatie.categorie;
 
@@ -899,6 +931,28 @@ function plaatsTempMarker(lat, lon) {
 }
 
 
+// FOTO PREVIEW bij selectie nieuw bestand
+document.getElementById('locatieFotoBestand').addEventListener('change', function() {
+    const preview = document.getElementById('locatieFotoPreview');
+    if (this.files[0]) {
+        preview.src = URL.createObjectURL(this.files[0]);
+        preview.style.display = 'block';
+        document.getElementById('btnLocatieFotoVerwijderen').style.display = 'inline-block';
+    }
+});
+
+// FOTO VERWIJDEREN bij klik op knop
+document.getElementById('btnLocatieFotoVerwijderen').addEventListener('click', function() {
+    if (!confirm('Ben je zeker dat je deze foto wil verwijderen?')) return;
+    document.getElementById('locatieFotoBestand').value = '';
+    document.getElementById('locatieFotoBestaand').value = '';
+    const preview = document.getElementById('locatieFotoPreview');
+    preview.src = '';
+    preview.style.display = 'none';
+    this.style.display = 'none';
+});
+
+
 document.getElementById('btnNieuweLocatie').addEventListener('click', () => openLocatieModal());
 
 
@@ -944,23 +998,26 @@ document.getElementById('btnLocatieOpslaan').addEventListener('click', async () 
         return;
     }
 
-    const payload = {
-        reis_id: reisId,
-        naam: naam,
-        beschrijving: beschrijving,
-        categorie: categorie,
-        lat: coords.lat,
-        lon: coords.lon,
-        link: link
-    };
+    const formData = new FormData();
+    formData.append('reis_id', reisId);
+    formData.append('naam', naam);
+    formData.append('beschrijving', beschrijving);
+    formData.append('categorie', categorie);
+    formData.append('lat', coords.lat);
+    formData.append('lon', coords.lon);
+    formData.append('link', link);
+    formData.append('foto_bestaand', document.getElementById('locatieFotoBestaand').value);
 
-    if (locatieModalId) payload.id = locatieModalId;
+    if (locatieModalId) formData.append('id', locatieModalId);
+
+    const fotoBestand = document.getElementById('locatieFotoBestand').files[0];
+    if (fotoBestand) formData.append('foto', fotoBestand);
 
     try {
+        // geen Content-Type header: FormData stelt die automatisch in (multipart/form-data)
         const response = await fetch(locatieModalId ? 'API/update_locatie.php' : 'API/add_locatie.php', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: formData
         });
 
         if (checkSession(response)) return;
