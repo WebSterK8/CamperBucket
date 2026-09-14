@@ -78,7 +78,8 @@
                 <input type="hidden" id="locatieLon">
 
                 <label class="form-label" for="locatieLink">Link (waar gevonden?)</label>
-                <input class="form-control mb-3" type="url" id="locatieLink" maxlength="500" placeholder="https://...">
+                <input class="form-control" type="url" id="locatieLink" maxlength="500" placeholder="https://...">
+                <div id="locatieLinkStatus" class="small mb-3"></div>
 
             </div>
 
@@ -863,6 +864,7 @@ function openLocatieModal(locatie = null) {
     document.getElementById('locatieBeschrijving').value = locatie ? (locatie.beschrijving || '') : '';
     zetLocatieCoords(locatie ? locatie.lat : '', locatie ? locatie.lon : '');
     document.getElementById('locatieLink').value = locatie ? (locatie.link || '') : '';
+    document.getElementById('locatieLinkStatus').textContent = '';
     document.getElementById('btnLocatieVerwijder').style.display = locatie ? 'inline-block' : 'none';
 
     document.getElementById('locatieFotoBestand').value = '';
@@ -917,6 +919,62 @@ function leesLocatieCoords() {
 
     return { lat, lon };
 }
+
+
+// enkel links van Google Maps of Park4Night triggeren de automatische coördinaten-opzoeking
+function isHerkendeLocatieLink(url) {
+    let host;
+    try {
+        host = new URL(url).hostname.toLowerCase();
+    } catch {
+        return false;
+    }
+
+    return host === 'goo.gl' || host === 'maps.app.goo.gl' || /(^|\.)google\.[a-z.]{2,6}$/.test(host)
+        || host === 'park4night.com' || /(^|\.)park4night\.com$/.test(host);
+}
+
+
+// zodra een herkende link in het "Link"-veld geplakt wordt: coördinaten server-side laten ophalen en invullen
+document.getElementById('locatieLink').addEventListener('blur', async function() {
+
+    const link = this.value.trim();
+    const statusEl = document.getElementById('locatieLinkStatus');
+    statusEl.textContent = '';
+
+    if (!isHerkendeLocatieLink(link)) return;
+
+    statusEl.textContent = 'Coördinaten ophalen...';
+    statusEl.className = 'small mb-3 text-muted';
+
+    try {
+        const response = await fetch('API/resolve_locatie_link.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ link: link })
+        });
+
+        if (checkSession(response)) return;
+
+        const result = await response.json();
+
+        if (result.success) {
+            zetLocatieCoords(result.lat.toFixed(6), result.lon.toFixed(6));
+            plaatsTempMarker(result.lat, result.lon);
+            mapLocaties.setView([result.lat, result.lon], 14);
+            statusEl.textContent = 'Coördinaten opgehaald ✓';
+            statusEl.className = 'small mb-3 text-success';
+        } else {
+            statusEl.textContent = (result.message || 'Kon coördinaten niet ophalen') + ' — plak ze handmatig.';
+            statusEl.className = 'small mb-3 text-danger';
+        }
+
+    } catch (error) {
+        console.error('Fout bij ophalen coördinaten uit link:', error);
+        statusEl.textContent = 'Kon coördinaten niet ophalen, plak ze handmatig.';
+        statusEl.className = 'small mb-3 text-danger';
+    }
+});
 
 
 function plaatsTempMarker(lat, lon) {
