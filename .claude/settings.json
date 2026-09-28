@@ -12,7 +12,8 @@
       "Bash(curl -s \"https://nominatim.openstreetmap.org/search?format=json&limit=1&q=Brakelbosstraat+31%2C+9660+Brakel\" -A \"CamperBucketTest/1.0 \\(diagnose\\)\" -H \"Accept-Language: nl\")",
       "Bash(curl -s \"https://nominatim.openstreetmap.org/search?format=json&limit=1&q=Brakelbos%2C+Brakel\" -A \"CamperBucketTest/1.0 \\(diagnose\\)\" -H \"Accept-Language: nl\")",
       "Bash(php -r ' *)",
-      "Bash(php -l \"c:\\\\xampp\\\\htdocs\\\\CamperBucket\\\\API\\\\resolve_locatie_link.php\")"
+      "Bash(php -l \"c:\\\\xampp\\\\htdocs\\\\CamperBucket\\\\API\\\\resolve_locatie_link.php\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost/CamperBucket/locatie.php)"
     ],
     "additionalDirectories": [
       "\\tmp"

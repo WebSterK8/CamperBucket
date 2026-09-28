@@ -5,7 +5,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 
-<h2 class="text-darksage">Locaties per reis</h2>
+<h2 class="text-darksage" id="locatieTitel">Locaties per reis</h2>
 
 <p class="small text-muted"></p>
 
@@ -160,9 +160,12 @@ const LOCATIE_KLEUREN = ['#7a8f7a', '#669999', '#c98a4b', '#9b6b9e', '#4b7bac', 
 let categorieen = [];          // [{slug, naam, positie}], op volgorde van positie
 let categorieKleur = {};       // slug -> hexkleur
 
-let alleLocaties = [];               // laatst opgehaalde (ongefilterde) locaties voor de huidige reis
+let alleLocaties = [];               // laatst opgehaalde (ongefilterde) locaties voor de huidige reis (of alle favorieten)
 let actieveCategorieen = new Set();  // slugs die momenteel getoond worden (filter op de legenda-chips)
 let toonEnkelFavorieten = false;     // filter: enkel favorieten tonen binnen de actieve categorieën
+
+const FAVORIETEN_WAARDE = '__favorieten__'; // waarde van de speciale "Favorieten"-optie in de reis-dropdown
+let favorietenModus = false;   // true = de globale favorietenweergave (alle reizen) i.p.v. één reis
 
 let reizenLijst = [];          // [{id, land, ...}], voor de reis-dropdown in het locatie-formulier
 let huidigeReisId = null;
@@ -319,6 +322,9 @@ function bouwLegenda() {
     });
 
     // aparte filter-chip voor favorieten: onafhankelijk van de categorieën, werkt als extra AND-voorwaarde
+    // (overbodig in de globale favorietenweergave, want daar is toch alles al favoriet)
+    if (favorietenModus) return;
+
     const favorietChip = document.createElement('span');
     favorietChip.className = 'locatie-legenda-item locatie-filter-chip d-flex align-items-center gap-2';
     favorietChip.title = 'Klik om enkel favorieten te tonen';
@@ -543,6 +549,11 @@ async function loadReizen() {
             return;
         }
 
+        const favorietenOptie = document.createElement('option');
+        favorietenOptie.value = FAVORIETEN_WAARDE;
+        favorietenOptie.textContent = '★ Favorieten (alle reizen)';
+        select.appendChild(favorietenOptie);
+
         reizenLijst.forEach(reis => {
             const optie = document.createElement('option');
             optie.value = reis.id;
@@ -558,8 +569,11 @@ async function loadReizen() {
         document.getElementById('btnNieuweLocatie').disabled = false;
 
         select.addEventListener('change', () => {
-            huidigeReisId = select.value;
-            loadLocaties();
+            if (select.value === FAVORIETEN_WAARDE) {
+                kiesFavorietenModus();
+            } else {
+                kiesReis(select.value);
+            }
         });
 
     } catch (error) {
@@ -587,7 +601,46 @@ function vulReisSelect() {
 // LOCATIES OP DE KAART
 // =========================
 
+// wisselt naar een specifieke reis (vanuit de dropdown, of vanuit een klik op de reis-naam bij een favoriet)
+function kiesReis(reisId) {
+    favorietenModus = false;
+    huidigeReisId = reisId;
+    document.getElementById('locatieReisSelect').value = reisId;
+    document.getElementById('btnNieuweLocatie').disabled = false;
+    document.getElementById('locatieTitel').textContent = 'Locaties per reis';
+    bouwLegenda();
+    loadLocaties();
+}
+
+// wisselt naar de globale favorietenweergave (alle reizen)
+function kiesFavorietenModus() {
+    favorietenModus = true;
+    huidigeReisId = null;
+    document.getElementById('locatieReisSelect').value = FAVORIETEN_WAARDE;
+    document.getElementById('btnNieuweLocatie').disabled = true;
+    document.getElementById('locatieTitel').textContent = 'Favoriete locaties';
+    bouwLegenda();
+    loadLocaties();
+}
+
 async function loadLocaties() {
+
+    if (favorietenModus) {
+        try {
+            const response = await fetch('API/get_favoriete_locaties.php');
+            if (checkSession(response)) return;
+
+            alleLocaties = await response.json();
+
+            positioneerKaart(alleLocaties);
+            renderGefilterdeLocaties();
+
+        } catch (error) {
+            console.error("Fout bij laden favoriete locaties:", error);
+            alert("Kon favorieten niet laden. Vernieuw de pagina.");
+        }
+        return;
+    }
 
     if (!huidigeReisId) {
         alleLocaties = [];
@@ -743,6 +796,25 @@ function maakLocatieDetails(locatie) {
     catP.textContent = categorieNaam ? categorieNaam.naam : locatie.categorie;
     wrapper.appendChild(catP);
 
+    // in de globale favorietenweergave: tonen bij welke reis dit hoort, klikbaar om daarnaartoe te springen
+    if (favorietenModus) {
+        const reisLink = document.createElement('a');
+        reisLink.href = '#';
+        reisLink.className = 'd-block small mt-1';
+        reisLink.textContent = '📍 ' + maakReisLabel({
+            land: locatie.reis_land,
+            start_jaar: locatie.start_jaar,
+            start_maand: locatie.start_maand,
+            eind_jaar: locatie.eind_jaar
+        });
+        reisLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            mapLocaties.closePopup();
+            kiesReis(locatie.reis_id);
+        });
+        wrapper.appendChild(reisLink);
+    }
+
     if (locatie.link) {
         const link = document.createElement('a');
         link.href = locatie.link;
@@ -799,7 +871,7 @@ function renderLocatieLijst(locaties) {
     if (locaties.length === 0) {
         const leeg = document.createElement('p');
         leeg.className = 'text-muted small mb-0 p-2';
-        leeg.textContent = 'Nog geen locaties opgeslagen voor deze reis.';
+        leeg.textContent = favorietenModus ? 'Nog geen favorieten gemarkeerd.' : 'Nog geen locaties opgeslagen voor deze reis.';
         container.appendChild(leeg);
         return;
     }
@@ -1015,7 +1087,10 @@ document.getElementById('btnNieuweLocatie').addEventListener('click', () => open
 
 
 // klik op de kaart: coördinaten invullen in het open formulier (of een nieuw formulier openen)
+// niet in de globale favorietenweergave: daar ontbreekt een duidelijke "huidige reis" om de nieuwe locatie aan te koppelen
 mapLocaties.on('click', function(e) {
+
+    if (favorietenModus && !locatieModalOpen) return;
 
     const lat = e.latlng.lat;
     const lon = e.latlng.lng;
