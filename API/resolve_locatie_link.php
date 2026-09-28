@@ -32,6 +32,9 @@ function haalUrlOp($url) {
         CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
         CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
         CURLOPT_USERAGENT => 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+        // omzeilt Google's cookie-consentscherm, dat op EU-serververzoeken zonder cookies verschijnt
+        // i.p.v. direct door te sturen naar de kaartpagina
+        CURLOPT_COOKIE => 'CONSENT=YES+1',
     ]);
 
     $body = curl_exec($ch);
@@ -52,6 +55,11 @@ function haalUrlOp($url) {
 function haalGoogleCoords($opgehaald) {
     $tekst = $opgehaald['effectiveUrl'] . ' ' . $opgehaald['body'];
 
+    // mocht er tóch een consentscherm doorkomen: de echte bestemmings-url zit in "continue"
+    if (preg_match('/[?&]continue=([^&\s"]+)/', $tekst, $continueMatch)) {
+        $tekst .= ' ' . urldecode($continueMatch[1]);
+    }
+
     $patronen = [
         '/!3d(-?\d{1,3}\.\d+)!4d(-?\d{1,3}\.\d+)/',
         '/@(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/',
@@ -66,6 +74,63 @@ function haalGoogleCoords($opgehaald) {
     }
 
     return null;
+}
+
+
+// laatste redmiddel voor Google-links zonder ingebedde coördinaten (bv. adressen i.p.v. bekende plekken):
+// de plaatsnaam/het adres uit de url halen en geocoden via Nominatim, dezelfde dienst als voor de reisbestemming
+function haalGoogleCoordsViaNaam($effectiveUrl) {
+
+    if (!preg_match('#/maps/place/([^/@]+)#', $effectiveUrl, $match)) {
+        return null;
+    }
+
+    $naam = urldecode(str_replace('+', ' ', $match[1]));
+
+    // eerste poging: de volledige naam; Google zet er soms een niet-adres-onderdeel voor
+    // (bv. "Brakelbos, Brakelbosstraat 31, ...") wat Nominatim in de war brengt, vandaar een 2de poging zonder dat eerste stuk
+    $pogingen = [$naam];
+    if (($kommaPos = strpos($naam, ',')) !== false) {
+        $pogingen[] = trim(substr($naam, $kommaPos + 1));
+    }
+
+    foreach ($pogingen as $poging) {
+        $coords = geocodeViaNominatim($poging);
+        if ($coords !== null) return $coords;
+    }
+
+    return null;
+}
+
+
+function geocodeViaNominatim($zoekterm) {
+    $url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' . urlencode($zoekterm);
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CONNECTTIMEOUT => 5,
+        CURLOPT_TIMEOUT => 10,
+        CURLOPT_HTTPHEADER => ['Accept-Language: nl'],
+        // Nominatim's gebruiksvoorwaarden vragen een herkenbare user-agent voor server-side verzoeken
+        CURLOPT_USERAGENT => 'CamperBucket/1.0 (persoonlijke camper-planningsapp)',
+    ]);
+
+    $body = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($body === false || $httpCode !== 200) {
+        return null;
+    }
+
+    $resultaten = json_decode($body, true);
+
+    if (empty($resultaten[0]['lat']) || empty($resultaten[0]['lon'])) {
+        return null;
+    }
+
+    return ['lat' => (float) $resultaten[0]['lat'], 'lon' => (float) $resultaten[0]['lon']];
 }
 
 
@@ -123,6 +188,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $coords = $type === 'google' ? haalGoogleCoords($opgehaald) : haalPark4nightCoords($opgehaald);
+
+    if ($coords === null && $type === 'google') {
+        $coords = haalGoogleCoordsViaNaam($opgehaald['effectiveUrl']);
+    }
 
     if ($coords === null) {
         http_response_code(422);

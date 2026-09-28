@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -sIL -A \"Mozilla/5.0 \\(iPhone; CPU iPhone OS 17_0 like Mac OS X\\) AppleWebKit/605.1.15\" \"https://www.google.com/maps?cid=3264434363871345271\")",
+      "Bash(curl -sL -A \"Mozilla/5.0 \\(iPhone; CPU iPhone OS 17_0 like Mac OS X\\) AppleWebKit/605.1.15\" \"https://www.google.com/maps?cid=3264434363871345271\" -o /tmp/cid.html -w \"HTTP:%{http_code} url:%{url_effective}\\\\n\")",
+      "Read(//tmp/**)",
+      "Bash(curl -sL -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/120.0 Safari/537.36\" \"https://www.google.com/maps?cid=3264434363871345271\" -o /tmp/cid2.html -w \"HTTP:%{http_code} url:%{url_effective}\\\\n\")",
+      "Bash(curl -sL -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/120.0 Safari/537.36\" \"https://www.google.com/maps?cid=3264434363871345271\" -o /tmp/cid2.html)",
+      "Bash(grep -oE '-?[0-9]{2}\\\\.[0-9]{5,7},-?[0-9]{1,2}\\\\.[0-9]{5,7}' /tmp/cid2.html)",
+      "Bash(grep -oE -- '-?[0-9]{2}\\\\.[0-9]{5,7},-?[0-9]{1,2}\\\\.[0-9]{5,7}' /tmp/cid2.html)",
+      "Bash(curl -s \"https://nominatim.openstreetmap.org/search?format=json&limit=1&q=Brakelbos%2C+Brakelbosstraat+31%2C+9660+Brakel\" -A \"CamperBucketTest/1.0 \\(diagnose\\)\" -H \"Accept-Language: nl\")",
+      "Bash(curl -s \"https://nominatim.openstreetmap.org/search?format=json&limit=1&q=Brakelbosstraat+31%2C+9660+Brakel\" -A \"CamperBucketTest/1.0 \\(diagnose\\)\" -H \"Accept-Language: nl\")",
+      "Bash(curl -s \"https://nominatim.openstreetmap.org/search?format=json&limit=1&q=Brakelbos%2C+Brakel\" -A \"CamperBucketTest/1.0 \\(diagnose\\)\" -H \"Accept-Language: nl\")",
+      "Bash(php -r ' *)",
+      "Bash(php -l \"c:\\\\xampp\\\\htdocs\\\\CamperBucket\\\\API\\\\resolve_locatie_link.php\")"
+    ],
+    "additionalDirectories": [
+      "\\tmp"
+    ]
+  }
+}
