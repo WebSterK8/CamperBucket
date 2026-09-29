@@ -14,7 +14,11 @@
       "Bash(php -r ' *)",
       "Bash(php -l \"c:\\\\xampp\\\\htdocs\\\\CamperBucket\\\\API\\\\resolve_locatie_link.php\")",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost/CamperBucket/locatie.php)",
-      "Bash(php -l map_leaf_locaties.php)"
+      "Bash(php -l map_leaf_locaties.php)",
+      "Bash(/c/xampp/php/php.exe \"C:/Users/kaatj/AppData/Local/Temp/claude/c--xampp-htdocs-CamperBucket/d3387cf9-6623-46c1-a739-dee6f7de14db/scratchpad/care_setup.php\")",
+      "Bash(/c/xampp/php/php.exe -l /c/xampp/htdocs/CamperBucket/camper_care.php)",
+      "Bash(/c/xampp/php/php.exe -l /c/xampp/htdocs/CamperBucket/API/care_reorder.php)",
+      "Bash(curl -sI https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js)"
     ],
     "additionalDirectories": [
       "\\tmp"

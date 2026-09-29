@@ -78,6 +78,10 @@
                 </li>
 
                 <li class="nav-item">
+                    <a class="nav-link" href="camper_care.php">Camper Care</a>
+                </li>
+
+                <li class="nav-item">
                     <a class="nav-link" href="afbeeldingen.php">Afbeeldingen</a>
                 </li>
 
