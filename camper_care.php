@@ -109,7 +109,7 @@ ul[id^="list_"] { min-height: 2.5rem; }
     <!-- titel, in dezelfde stijl als de CheckList-pagina -->
     <div class="d-flex justify-content-between align-items-center m-3 m-md-5">
 
-        <h1 style="color: #606f60;">Camper Care</h1>
+        <h1 style="color: #606f60;">CamperCare</h1>
 
     </div>
 
