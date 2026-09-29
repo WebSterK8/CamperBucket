@@ -78,7 +78,7 @@
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="camper_care.php">Camper Care</a>
+                    <a class="nav-link" href="camper_care.php">CamperCare</a>
                 </li>
 
                 <li class="nav-item">
